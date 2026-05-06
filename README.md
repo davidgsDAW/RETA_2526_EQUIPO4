@@ -1,8 +1,33 @@
-# RETA_2526_EQUIPO4
-## 📝 Docuementación básica para el proyecto del equipo 4
+# DAW_RETA_2526_EQUIPO4
 
+## 🛠️ WIP
 
-os recomiendo vigilar la ortografía y contenido del repositorio    
-un enlace que os puede ser útil
-https://datosgobar.github.io/portal-andino/markdown-guide/
+El README está en preceso de creación. Habrá cambios frecuentemente y posibles errores.
 
+## 📚 Índice
+
+- [💻 Descripción del Proyecto](#-descripción-del-proyecto)
+- [📂 Sobre la Base de Datos](#-sobre-la-base-de-datos)
+- [📱 Sobre la Página Web](#-sobre-la-página-web)
+- [☕ Sobre el Programa](#-sobre-el-programa)
+- [⌨️ Sobre el Despliegue](#️-sobre-el-despliegue)
+
+## 💻 Descripción del Proyecto
+
+> Pendiente. 
+
+## 📂 Sobre la Base de Datos
+
+> Pendiente.
+
+## 📱 Sobre la Página Web
+
+> Pendiente.
+
+## ☕ Sobre el Programa
+
+> Pendiente.
+
+## ⌨️ Sobre el Despliegue
+
+>Pendiente.
