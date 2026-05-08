@@ -9,7 +9,7 @@ import java.util.Properties;
 public class ConexionBD {
     
     
-    private final String BD = "Taller";//confirmar nombre base de datos
+    private final String BD = "Taller_Informatico";//confirmar nombre base de datos
     private final String url = "jdbc:mysql://localhost:3306/" + BD;
     private final String contraseña = "mysql";
     private final String user = "root";
