@@ -1,9 +1,5 @@
 # DAW_RETA_2526_EQUIPO4
 
-## 🛠️ WIP
-
-El README está en proceso de creación, habrá cambios frecuentemente y posibles errores.
-
 ## 📚 Índice
 
 - [📝 Descripción del Proyecto](#-descripción-del-proyecto)
@@ -21,7 +17,7 @@ El README está en proceso de creación, habrá cambios frecuentemente y posible
 - [💻 Sobre el Despliegue](#-sobre-el-despliegue)
   - [Entregas del despliegue](#entregas-del-despliegue)
 - [🔍 Otras entregas](#-otras-entregas)
-  - [Entregas IPEI](#entragas-ipei)
+  - [Entregas IPE1](#entragas-ipe1)
 
 ## 📝 Descripción del Proyecto
 
@@ -71,8 +67,8 @@ Junto a esta aplicación, nuestro objetivo es desarrollar una web y una base de 
 
 ## 🔍 Otras entregas
 
-### Entragas IPEI
+### Entragas IPE1
 
-- [Entrega del mapa profesional](/Documentacion/IPEI/Equipo4-IPEI-Tarea1-MapaProfesional.pdf)
+- [Entrega del mapa profesional](/Documentacion/IPE1/Equipo4-IPEI-Tarea1-MapaProfesional.pdf)
 
 #### [⤴️ Volver](#-índice)
