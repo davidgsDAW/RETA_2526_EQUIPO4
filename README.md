@@ -10,6 +10,7 @@ El README está en preceso de creación. Habrá cambios frecuentemente y posible
 - [📂 Sobre la Base de Datos](#-sobre-la-base-de-datos)
 - [📱 Sobre la Página Web](#-sobre-la-página-web)
 - [☕ Sobre el Programa](#-sobre-el-programa)
+  - [Entregas del programa](#entregas-del-programa)
 - [⌨️ Sobre el Despliegue](#️-sobre-el-despliegue)
   - [Entregas del despliegue](#entregas-del-despliegue)
 
