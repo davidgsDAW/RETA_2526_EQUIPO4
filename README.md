@@ -45,7 +45,7 @@ El README está en preceso de creación. Habrá cambios frecuentemente y posible
 
 ### Entregas del programa
 
-- [Diagrama de clases (borrador)]()
+- [Diagrama de clases (borrador)](/Documentacion/ED/entrega-diagrama-clases/diagrama-clases.drawio)
 
 ## ⌨️ Sobre el Despliegue
 
