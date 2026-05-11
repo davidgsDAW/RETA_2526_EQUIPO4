@@ -1,0 +1,66 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+/* El plano de la habitación */
+.room-map {
+    display: grid;
+    width: 400px;
+    height: 400px;
+    gap: 10px;
+    background: #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    /* Dibujamos el layout: 3 filas y 3 columnas */
+    grid-template-areas: 
+        "ventana ventana ."
+        "cama . armario"
+        "cama mesa armario";
+}
+
+.zone {
+    background: #3498db;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    font-weight: bold;
+}
+
+.zone:hover {
+    background: #2980b9;
+    transform: scale(1.02);
+}
+
+/* El visor de imágenes */
+.viewer {
+    width: 400px;
+    height: 300px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    overflow: hidden;
+}
+
+#viewer-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

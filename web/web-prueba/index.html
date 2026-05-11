@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mi Habitación Interactiva</title>
+        <link rel="stylesheet" href="index-styles.css">
+    </head>
+
+    <body>
+        <h1>Mapa de mi Habitación</h1>
+        <p>Haz clic en una zona para ver la foto real.</p>
+
+        <div class="container">
+            <!-- Mapa Interactivo -->
+            <div class="room-map">
+                <div class="zone" data-img="https://via.placeholder.com/400x300?text=Foto+de+la+Cama" style="grid-area: cama;">Cama</div>
+                <div class="zone" data-img="https://via.placeholder.com/400x300?text=Foto+del+Escritorio" style="grid-area: mesa;">Escritorio</div>
+                <div class="zone" data-img="https://via.placeholder.com/400x300?text=Foto+del+Armario" style="grid-area: armario;">Armario</div>
+                <div class="zone" data-img="https://via.placeholder.com/400x300?text=Foto+de+la+Ventana" style="grid-area: ventana;">Ventana</div>
+            </div>
+
+            <!-- Visor de Fotos -->
+            <div id="viewer" class="viewer">
+                <p id="viewer-placeholder">Selecciona una zona del mapa...</p>
+                <img id="viewer-img" src="" alt="Vista real" style="display: none;">
+            </div>
+        </div>
+
+        <script src="index-scripts.js"></script>
+    </body>
+</html>
