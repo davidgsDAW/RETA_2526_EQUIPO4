@@ -48,7 +48,8 @@ Junto a esta aplicación, nuestro objetivo es desarrollar una web y una base de 
 ### Entregas de la base de datos
 
 - [Entrega del diagrama Entidad Relación de la base de datos](/Documentacion/BD/Entidad_Relacion_Reto.png)
-- [Entrega del script de la base de datos (prueba)](/Documentacion/BD/ScriptPrueba.sql)
+- [Entrega del script de la base de datos](/Documentacion/BD/Script_Final.sql)
+- [Entrega del modelo relacional de la base de datos](/Documentacion/BD/Modelo_Relacional.png)
 
 ## 📱 Sobre la Página Web
 
