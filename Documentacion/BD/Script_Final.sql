@@ -47,7 +47,6 @@ CREATE TABLE ubicacion (
 );
 
 -- Tabla: usuario
--- NOTA: la contraseña se almacena hasheada con MD5 (o superior) desde la aplicación
 CREATE TABLE usuario (
     id_usuario  INT          NOT NULL AUTO_INCREMENT,
     nombre      VARCHAR(100) NOT NULL,
@@ -142,3 +141,191 @@ CREATE INDEX idx_prestamo_usuario   ON prestamo(id_usuario);
 CREATE INDEX idx_prestamo_material  ON prestamo(id_material);
 CREATE INDEX idx_movimiento_mat     ON historial_movimiento(id_material);
 CREATE INDEX idx_movimiento_usr     ON historial_movimiento(id_usuario);
+
+
+DROP TRIGGER IF EXISTS trg_alta_material;
+DROP TRIGGER IF EXISTS trg_cambio_estado_material;
+DROP TRIGGER IF EXISTS trg_corregir_cantidad;
+DROP TRIGGER IF EXISTS trg_stock_agotado;
+DROP TRIGGER IF EXISTS trg_nuevo_prestamo;
+DROP TRIGGER IF EXISTS trg_devolucion_prestamo;
+
+
+
+USE taller_informatica;
+DELIMITER $$
+
+--  TRIGGER 1: Alta de material
+--  Registra automáticamente en historial cuando se añade un nuevo elemento al inventario.
+
+
+CREATE TRIGGER trg_alta_material
+AFTER INSERT ON material
+FOR EACH ROW
+BEGIN
+    INSERT INTO historial_movimiento (
+        id_material,
+        id_usuario,
+        tipo_movimiento,
+        fecha,
+        observaciones
+    )
+    VALUES (
+        NEW.id_material,
+        1,
+        'ALTA',
+        NOW(),
+        CONCAT('Alta automática del material: ', NEW.nombre)
+    );
+END$$
+
+
+
+--  TRIGGER 2: Cambio de estado del material
+
+
+
+CREATE TRIGGER trg_cambio_estado_material
+AFTER UPDATE ON material
+FOR EACH ROW
+BEGIN
+    -- Solo actúa si el estado cambió Y no es un cambio de préstamo/devolución
+    IF OLD.id_estado <> NEW.id_estado
+       AND NOT (OLD.id_estado = 1 AND NEW.id_estado = 2)
+       AND NOT (OLD.id_estado = 2 AND NEW.id_estado = 1)
+    THEN
+        INSERT INTO historial_movimiento (
+            id_material,
+            id_usuario,
+            tipo_movimiento,
+            fecha,
+            observaciones
+        )
+        VALUES (
+            NEW.id_material,
+            1,
+            'CAMBIO_ESTADO',
+            NOW(),
+            CONCAT(
+                'Estado cambiado en "', NEW.nombre, '": ',
+                OLD.id_estado, ' → ', NEW.id_estado
+            )
+        );
+    END IF;
+END$$
+
+
+
+--  TRIGGER 3a: Corregir cantidad negativa 
+--  Este trigger SOLO corrige la cantidad a 0 si alguien intenta poner un valor negativo
+
+
+CREATE TRIGGER trg_corregir_cantidad
+BEFORE UPDATE ON material
+FOR EACH ROW
+BEGIN
+    IF NEW.cantidad < 0 THEN
+        SET NEW.cantidad = 0;
+    END IF;
+END$$
+
+
+
+--  TRIGGER 3b: Avisar cuando el stock llega a 0
+
+CREATE TRIGGER trg_stock_agotado
+AFTER UPDATE ON material
+FOR EACH ROW
+BEGIN
+    IF NEW.cantidad = 0 AND OLD.cantidad > 0 THEN
+        INSERT INTO historial_movimiento (
+            id_material,
+            id_usuario,
+            tipo_movimiento,
+            fecha,
+            observaciones
+        )
+        VALUES (
+            NEW.id_material,
+            1,
+            'STOCK_AGOTADO',
+            NOW(),
+            CONCAT('AVISO: el material "', NEW.nombre, '" ha llegado a cantidad 0.')
+        );
+    END IF;
+END$$
+
+
+
+--  TRIGGER 4: Nuevo préstamo
+--  Cambia el estado del material a PRESTADO (id=2) y lo registra
+--  en historial. 
+
+
+CREATE TRIGGER trg_nuevo_prestamo
+AFTER INSERT ON prestamo
+FOR EACH ROW
+BEGIN
+    UPDATE material
+    SET id_estado = 2
+    WHERE id_material = NEW.id_material;
+
+    INSERT INTO historial_movimiento (
+        id_material,
+        id_usuario,
+        tipo_movimiento,
+        fecha,
+        observaciones
+    )
+    VALUES (
+        NEW.id_material,
+        NEW.id_usuario,
+        'PRESTAMO',
+        NOW(),
+        CONCAT(
+            'Material prestado al usuario id: ', NEW.id_usuario,
+            '. Devolución prevista: ',
+            IFNULL(NEW.fecha_devolucion, 'Sin fecha')
+        )
+    );
+END$$
+
+
+
+--  TRIGGER 5: Devolución de préstamo
+--  Cuando se rellena fecha_devolucion, vuelve a poner el material
+--  como DISPONIBLE y lo registra.
+
+
+CREATE TRIGGER trg_devolucion_prestamo
+AFTER UPDATE ON prestamo
+FOR EACH ROW
+BEGIN
+    IF OLD.fecha_devolucion IS NULL AND NEW.fecha_devolucion IS NOT NULL THEN
+
+        UPDATE material
+        SET id_estado = 1
+        WHERE id_material = NEW.id_material;
+
+        INSERT INTO historial_movimiento (
+            id_material,
+            id_usuario,
+            tipo_movimiento,
+            fecha,
+            observaciones
+        )
+        VALUES (
+            NEW.id_material,
+            NEW.id_usuario,
+            'DEVOLUCION',
+            NOW(),
+            CONCAT(
+                'Material devuelto por usuario id: ', NEW.id_usuario,
+                '. Fecha de devolución: ', NEW.fecha_devolucion
+            )
+        );
+
+    END IF;
+END$$
+
+DELIMITER ;
