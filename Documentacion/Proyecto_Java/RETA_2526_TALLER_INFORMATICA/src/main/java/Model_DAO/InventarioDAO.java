@@ -1,6 +1,4 @@
-
 package Model_DAO;
-
 
 import Clases.Categoria;
 import Clases.ElementoInventario;
@@ -15,13 +13,30 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementación del DAO (Data Access Object) para la entidad ElementoInventario.
+ * Proporciona métodos para realizar operaciones CRUD en la base de datos.
+ * 
+ * @author David Gómez
+ * @version 1.0
+ * @since 2026-05-12
+ */
 public class InventarioDAO implements Repo_Inventario {
     private Connection getConexion;
     
+    /**
+     * Constructor de la clase InventarioDAO.
+     * Obtiene la conexión a la base de datos mediante el Singleton ConexionBD.
+     */
     public InventarioDAO() {
         this.getConexion = ConexionBD.getInstance().getConn();
     }
     
+    /**
+     * Lista todos los elementos del inventario.
+     * 
+     * @return Lista con todos los elementos del inventario
+     */
     @Override
     public List<ElementoInventario> listar() {
         List<ElementoInventario> elementos = new ArrayList<>();
@@ -64,6 +79,12 @@ public class InventarioDAO implements Repo_Inventario {
         return elementos;
     }
     
+    /**
+     * Busca un elemento del inventario por su ID.
+     * 
+     * @param id Identificador único del elemento
+     * @return Elemento encontrado, o {@code null} si no existe
+     */
     @Override
     public ElementoInventario buscarPorid(int id) {
         String sql = "SELECT  e.id_material,e.nombre,e.descripcion,e.cantidad,e.fecha_alta,e.observaciones,e.id_categoria,e.id_estado,e.id_ubicacion"
@@ -108,6 +129,12 @@ public class InventarioDAO implements Repo_Inventario {
         return null;
     }
     
+    /**
+     * Busca un elemento del inventario por su estado.
+     * 
+     * @param estado Estado del elemento a buscar
+     * @return Primer elemento encontrado con ese estado, o {@code null} si no existe
+     */
     @Override
     public ElementoInventario buscarPorEstado(Estado_Elemento estado) {
         String sql = "SELECT  e.id_material,e.nombre,e.descripcion,e.cantidad,e.fecha_alta,e.observaciones,e.id_categoria,e.id_estado,e.id_ubicacion"
@@ -148,6 +175,12 @@ public class InventarioDAO implements Repo_Inventario {
         return null;
     }
     
+    /**
+     * Busca un elemento del inventario por su ubicación.
+     * 
+     * @param ubicacion Ubicación donde se encuentra el elemento
+     * @return Primer elemento encontrado en esa ubicación, o {@code null} si no existe
+     */
     @Override
     public ElementoInventario buscarPorLocalizacion(Localizacion ubicacion) {
         String sql = "SELECT  e.id_material,e.nombre,e.descripcion,e.cantidad,e.fecha_alta,e.observaciones,e.id_categoria,e.id_estado,e.id_ubicacion"
@@ -189,6 +222,12 @@ public class InventarioDAO implements Repo_Inventario {
         return null;
     }
     
+    /**
+     * Busca un elemento del inventario por su categoría.
+     * 
+     * @param categoria Categoría a la que pertenece el elemento
+     * @return Primer elemento encontrado en esa categoría, o {@code null} si no existe
+     */
     @Override
     public ElementoInventario buscarPorCategoria(Categoria categoria) {
         String sql = "SELECT  e.id_material,e.nombre,e.descripcion,e.cantidad,e.fecha_alta,e.observaciones,e.id_categoria,e.id_estado,e.id_ubicacion"
@@ -229,6 +268,12 @@ public class InventarioDAO implements Repo_Inventario {
         return null;
     }
     
+    /**
+     * Inserta un nuevo elemento en el inventario.
+     * 
+     * @param e Elemento a insertar
+     * @return {@code true} si la inserción fue exitosa, {@code false} en caso contrario
+     */
     @Override
     public boolean insertar(ElementoInventario e) {
         String sql = "INSERT INTO material (nombre, descripcion, cantidad, id_categoria, id_estado, id_ubicacion) " +
@@ -249,6 +294,12 @@ public class InventarioDAO implements Repo_Inventario {
         }
     }
     
+    /**
+     * Actualiza la información de un elemento existente.
+     * 
+     * @param e Elemento con los datos actualizados
+     * @return {@code true} si la actualización fue exitosa, {@code false} en caso contrario
+     */
     @Override
     public boolean actualizar(ElementoInventario e) {
         String sql = "UPDATE material SET nombre = ?, descripcion = ?, cantidad = ?, " +
@@ -270,6 +321,12 @@ public class InventarioDAO implements Repo_Inventario {
         }
     }
     
+    /**
+     * Elimina un elemento del inventario por su ID.
+     * 
+     * @param id Identificador único del elemento a eliminar
+     * @return {@code true} si la eliminación fue exitosa, {@code false} en caso contrario
+     */
     @Override
     public boolean eliminar(int id) {
         String sql = "DELETE FROM material WHERE id_elemento = ?";
