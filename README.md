@@ -79,7 +79,7 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
       <td align="center">Es el programa/web usado por nuestros profesores para organizar nuestros equipos del proyecto. De ahí hemos obtenido la información mínima requerida para el desarrollo del proyecto y es donde puntualmente nos hemos comunicado. También es el lugar donde ciertos profesores nos han pedido subir ciertas entregas.</td>
     </tr>
     <tr>
-      <td align="center"><img src="/Documentacion/fotos-readme/mysql-logo.png.png" width="350" height="350" alt="Imágen del logo de MySQL"></td>
+      <td align="center"><img src="/Documentacion/fotos-readme/mysql-logo.png" width="350" height="350" alt="Imágen del logo de MySQL"></td>
       <td align="center">MySQL (Workbench y Server)</td>
       <td align="center">Son el conjunto de herramientas de Oracle destinadas a la creación y alojamiento de bases de datos. El lenguaje usado ha sido SQL. Con el Workbench hemos desarrollado y probado la base de datos, y con el Server la hemos alojado en una de las máquinas virtuales.</td>
     </tr>
