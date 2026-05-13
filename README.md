@@ -37,6 +37,24 @@ Junto a esta aplicación, nuestro objetivo es desarrollar una web y una base de 
 
 ### Tecnologías usadas
 
+<table border="1">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Nombre</th>
+      <th>Descripción</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="/Documentacion/fotos-readme/nb-logo.jpg"
+          width="250" height="250"></td>
+      <td>NetBeans</td>
+      <td>Es el IDE que hemos usado para el desarrollo del programa con Java. Se puede usar para el desarrollo con otras tecnologías (como PHP, HTML, CSS, JavaScript...), pero no es el más conveniente.</td>
+    </tr>
+  </tbody>
+</table>
+
 ### Valoración de nuestro trabajo
 
 ### Mejoras propuestas
