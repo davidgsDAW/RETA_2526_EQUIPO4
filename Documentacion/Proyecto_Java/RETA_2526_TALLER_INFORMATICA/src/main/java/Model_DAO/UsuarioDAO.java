@@ -18,7 +18,7 @@ import java.util.List;
  * @version 1.0
  * @since 2026-05-12
  */
-public class UsuarioDAO implements Repo_Usuario<Usuario,Prestamo> {
+public class UsuarioDAO implements Repo_Usuario<Usuario> {
     
     private final Connection getConexion;
     
@@ -106,7 +106,7 @@ public class UsuarioDAO implements Repo_Usuario<Usuario,Prestamo> {
      *         {@code null} en caso contrario
      */
     @Override
-    public Usuario autenticar(Usuario u, Prestamo p) {
+    public Usuario autenticar(Usuario u) {
         String sql = "SELECT * FROM usuario WHERE nombre = ? AND contrasena = ?";
         
         try (PreparedStatement pstmt = getConexion.prepareStatement(sql)) {
