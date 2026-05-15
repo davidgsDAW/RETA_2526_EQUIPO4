@@ -12,7 +12,7 @@ import java.util.List;
  * @param <T> Tipo de entidad Usuario
  * @param <P> Tipo de entidad Prestamo
  */
-public interface Repo_Usuario <T,P>{
+public interface Repo_Usuario <T>{
     
     /**
      * Lista todos los registros de la tabla de usuarios.
@@ -54,6 +54,6 @@ public interface Repo_Usuario <T,P>{
      * @return Usuario autenticado si las credenciales son correctas,
      *         {@code null} en caso contrario
      */
-    public T autenticar(T u , P p);
-    //metodo que nos permite aunteticar al usuario por prestamos y por usuario
+    public T autenticar(T u);
+    //metodo que nos permite aunteticar al usuario por usuario
 }
