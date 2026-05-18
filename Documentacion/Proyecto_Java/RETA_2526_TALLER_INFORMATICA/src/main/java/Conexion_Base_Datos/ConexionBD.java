@@ -33,7 +33,6 @@ public class ConexionBD {
 
     /**
      * Establece la conexión con la base de datos.
-     * Configura las propiedades de conexión como SSL y zona horaria.
      */
     private void abrirConexion() {
         try {
