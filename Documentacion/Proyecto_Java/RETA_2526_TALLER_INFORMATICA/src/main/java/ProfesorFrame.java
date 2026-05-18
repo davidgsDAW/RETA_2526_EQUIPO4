@@ -9,10 +9,9 @@ import java.net.URI;
  * Ventana principal del perfil Profesor.
  * Permite consulta del inventario, búsqueda y filtrado por nombre,
  * categoría, estado o código, localización visual del material
- * (abre el sitio web) y generación de listados.
  *
- * @author IES Miguel Herrero Pereda - DAW 2025/2026
- * @version 1.0
+ * @author David Gómez
+ * @version 3.0
  */
 public class ProfesorFrame extends JFrame {
 

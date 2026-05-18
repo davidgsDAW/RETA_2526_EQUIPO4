@@ -140,6 +140,27 @@ INSERT INTO usuario (nombre,contrasena,id_rol)VALUES
     ("mario","mario",1);
     
     
+INSERT INTO ubicacion (id_localizacion, codigo_armario, codigo_balda, descripcion) VALUES
+(1, 'A1', 'B1', 'Armario principal, balda superior'),
+(1, 'A1', 'B2', 'Armario principal, balda media'),
+(2, NULL, NULL, 'Cajón 1 del escritorio'),
+(3, 'B2', 'C1', 'Balda auxiliar'),
+(1, 'A2', 'B1', 'Armario secundario, balda alta');
+
+
+INSERT INTO material (nombre, descripcion, cantidad, fecha_alta, observaciones, id_categoria, id_estado, id_ubicacion) VALUES
+('Switch TP-Link 8 puertos', 'Switch básico no gestionado', 5, '2024-01-15', 'Usado en prácticas de redes', 1, 1, 1),
+('Router Cisco 1941', 'Router para CCNA', 2, '2024-02-10', 'Requiere licencia', 1, 2, 2),          
+('Placa base ASUS B450', 'Socket AM4, para prácticas', 3, '2024-01-20', 'Revisar pines', 2, 3, 3),    
+('Kit de destornilladores', 'Precisión para electrónica', 4, '2024-03-01', 'Caja completa', 3, 1, 4),
+('Pasta térmica Arctic MX-4', 'Tubo de 4g', 10, '2024-03-05', 'Caducidad 2026', 4, 1, 1),
+('Raspberry Pi 4 4GB', 'Con carcasa y fuente', 1, '2024-01-10', 'MicroSD no incluida', 5, 2, 2),     
+('Cable de red Cat6 2m', 'Uso general', 20, '2024-02-20', 'Color gris', 1, 1, 4),
+('Disco SSD 480GB SATA', 'Marca Kingston', 6, '2024-01-25', 'Para montaje de equipos', 2, 1, 3),
+('Polímetro digital', 'Mide tensión y continuidad', 1, '2024-03-10', 'Cuidar puntas', 3, 3, 5),    
+('Portátil Lenovo ThinkPad', 'i5, 8GB RAM, 256GB SSD', 2, '2024-02-28', 'Cargadores incluidos', 5, 2, 1);  
+
+
 CREATE INDEX idx_material_categoria ON material(id_categoria);
 CREATE INDEX idx_material_estado    ON material(id_estado);
 CREATE INDEX idx_material_ubicacion ON material(id_ubicacion);
@@ -149,6 +170,9 @@ CREATE INDEX idx_movimiento_mat     ON historial_movimiento(id_material);
 CREATE INDEX idx_movimiento_usr     ON historial_movimiento(id_usuario);
 
 
+USE Taller_Informatica;
+
+-- Eliminar triggers existentes
 DROP TRIGGER IF EXISTS trg_alta_material;
 DROP TRIGGER IF EXISTS trg_cambio_estado_material;
 DROP TRIGGER IF EXISTS trg_corregir_cantidad;
@@ -156,15 +180,9 @@ DROP TRIGGER IF EXISTS trg_stock_agotado;
 DROP TRIGGER IF EXISTS trg_nuevo_prestamo;
 DROP TRIGGER IF EXISTS trg_devolucion_prestamo;
 
-
-
-USE taller_informatica;
 DELIMITER $$
 
---  TRIGGER 1: Alta de material
---  Registra automáticamente en historial cuando se añade un nuevo elemento al inventario.
-
-
+-- TRIGGER 1: Alta de material 
 CREATE TRIGGER trg_alta_material
 AFTER INSERT ON material
 FOR EACH ROW
@@ -178,24 +196,18 @@ BEGIN
     )
     VALUES (
         NEW.id_material,
-        1,
+        15,  
         'ALTA',
         NOW(),
         CONCAT('Alta automática del material: ', NEW.nombre)
     );
 END$$
 
-
-
---  TRIGGER 2: Cambio de estado del material
-
-
-
+-- TRIGGER 2: Cambio de estado del material 
 CREATE TRIGGER trg_cambio_estado_material
 AFTER UPDATE ON material
 FOR EACH ROW
 BEGIN
-    -- Solo actúa si el estado cambió Y no es un cambio de préstamo/devolución
     IF OLD.id_estado <> NEW.id_estado
        AND NOT (OLD.id_estado = 1 AND NEW.id_estado = 2)
        AND NOT (OLD.id_estado = 2 AND NEW.id_estado = 1)
@@ -209,7 +221,7 @@ BEGIN
         )
         VALUES (
             NEW.id_material,
-            1,
+            15,  
             'CAMBIO_ESTADO',
             NOW(),
             CONCAT(
@@ -220,12 +232,7 @@ BEGIN
     END IF;
 END$$
 
-
-
---  TRIGGER 3a: Corregir cantidad negativa 
---  Este trigger SOLO corrige la cantidad a 0 si alguien intenta poner un valor negativo
-
-
+-- TRIGGER 3: Corregir cantidad negativa 
 CREATE TRIGGER trg_corregir_cantidad
 BEFORE UPDATE ON material
 FOR EACH ROW
@@ -235,10 +242,7 @@ BEGIN
     END IF;
 END$$
 
-
-
---  TRIGGER 3b: Avisar cuando el stock llega a 0
-
+-- TRIGGER 4: Stock agotado 
 CREATE TRIGGER trg_stock_agotado
 AFTER UPDATE ON material
 FOR EACH ROW
@@ -253,7 +257,7 @@ BEGIN
         )
         VALUES (
             NEW.id_material,
-            1,
+            15, 
             'STOCK_AGOTADO',
             NOW(),
             CONCAT('AVISO: el material "', NEW.nombre, '" ha llegado a cantidad 0.')
@@ -261,13 +265,7 @@ BEGIN
     END IF;
 END$$
 
-
-
---  TRIGGER 4: Nuevo préstamo
---  Cambia el estado del material a PRESTADO (id=2) y lo registra
---  en historial. 
-
-
+-- TRIGGER 5: Nuevo préstamo
 CREATE TRIGGER trg_nuevo_prestamo
 AFTER INSERT ON prestamo
 FOR EACH ROW
@@ -285,7 +283,7 @@ BEGIN
     )
     VALUES (
         NEW.id_material,
-        NEW.id_usuario,
+        NEW.id_usuario,  
         'PRESTAMO',
         NOW(),
         CONCAT(
@@ -296,13 +294,7 @@ BEGIN
     );
 END$$
 
-
-
---  TRIGGER 5: Devolución de préstamo
---  Cuando se rellena fecha_devolucion, vuelve a poner el material
---  como DISPONIBLE y lo registra.
-
-
+-- TRIGGER 6: Devolución de préstamo 
 CREATE TRIGGER trg_devolucion_prestamo
 AFTER UPDATE ON prestamo
 FOR EACH ROW
@@ -322,7 +314,7 @@ BEGIN
         )
         VALUES (
             NEW.id_material,
-            NEW.id_usuario,
+            NEW.id_usuario,  
             'DEVOLUCION',
             NOW(),
             CONCAT(
@@ -330,7 +322,6 @@ BEGIN
                 '. Fecha de devolución: ', NEW.fecha_devolucion
             )
         );
-
     END IF;
 END$$
 

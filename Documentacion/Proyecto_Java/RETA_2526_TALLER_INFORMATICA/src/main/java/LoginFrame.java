@@ -8,31 +8,33 @@ import java.sql.*;
 
 /**
  * Ventana de inicio de sesión de la aplicación de gestión del taller.
- * @author David Gómez 
- * @version 2.0
+ *
+ * Tabla utilizada:
+ *   usuario (id_usuario, nombre, contrasena, id_rol)
+ *   rol_usuario (id, nombre)  →  'ADMINISTRADOR' | 'PROFESOR'
+ *
+ * @author IES Miguel Herrero Pereda - DAW 2025/2026
+ * @version 3.0  (adaptado a Taller_Informatica)
  */
 public class LoginFrame extends JFrame {
 
-
-    private static final Color COLOR_FONDO        = new Color(15, 23, 42);
-    private static final Color COLOR_PANEL        = new Color(30, 41, 59);
-    private static final Color COLOR_ACENTO       = new Color(56, 189, 248);
-    private static final Color COLOR_ACENTO2      = new Color(99, 102, 241);
-    private static final Color COLOR_TEXTO        = new Color(226, 232, 240);
-    private static final Color COLOR_SUBTEXTO     = new Color(148, 163, 184);
-    private static final Color COLOR_CAMPO        = new Color(51, 65, 85);
-    private static final Color COLOR_CAMPO_BORDE  = new Color(71, 85, 105);
-    private static final Color COLOR_BTN          = new Color(56, 189, 248);
-    private static final Color COLOR_BTN_HOVER    = new Color(14, 165, 233);
-    private static final Color COLOR_ERROR        = new Color(248, 113, 113);
-
+    private static final Color COLOR_FONDO       = new Color(15, 23, 42);
+    private static final Color COLOR_PANEL       = new Color(30, 41, 59);
+    private static final Color COLOR_ACENTO      = new Color(56, 189, 248);
+    private static final Color COLOR_ACENTO2     = new Color(99, 102, 241);
+    private static final Color COLOR_TEXTO       = new Color(226, 232, 240);
+    private static final Color COLOR_SUBTEXTO    = new Color(148, 163, 184);
+    private static final Color COLOR_CAMPO       = new Color(51, 65, 85);
+    private static final Color COLOR_CAMPO_BORDE = new Color(71, 85, 105);
+    private static final Color COLOR_BTN         = new Color(56, 189, 248);
+    private static final Color COLOR_BTN_HOVER   = new Color(14, 165, 233);
+    private static final Color COLOR_ERROR       = new Color(248, 113, 113);
 
     private JTextField     txtUsuario;
     private JPasswordField txtContrasena;
     private JLabel         lblMensaje;
     private JButton        btnLogin;
     private JCheckBox      chkMostrar;
-
 
     public LoginFrame() {
         setTitle("Taller IES Miguel Herrero · Acceso al sistema");
@@ -43,16 +45,15 @@ public class LoginFrame extends JFrame {
         getContentPane().setBackground(COLOR_FONDO);
         setLayout(new BorderLayout());
 
-        add(crearPanelCabecera(), BorderLayout.NORTH);
+        add(crearPanelCabecera(),   BorderLayout.NORTH);
         add(crearPanelFormulario(), BorderLayout.CENTER);
-        add(crearPanelPie(), BorderLayout.SOUTH);
+        add(crearPanelPie(),        BorderLayout.SOUTH);
     }
 
-
+    // ── Cabecera ───────────────────────────────────────────────────────
     private JPanel crearPanelCabecera() {
         JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -68,8 +69,7 @@ public class LoginFrame extends JFrame {
         panel.setBorder(new EmptyBorder(40, 40, 20, 40));
 
         JLabel icono = new JLabel("🖥") {
-            @Override
-            public void paintComponent(Graphics g) {
+            @Override public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(new Color(56, 189, 248, 40));
@@ -93,8 +93,7 @@ public class LoginFrame extends JFrame {
         subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JSeparator sep = new JSeparator() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.dispose();
@@ -110,18 +109,16 @@ public class LoginFrame extends JFrame {
         panel.add(subtitulo);
         panel.add(Box.createVerticalStrut(20));
         panel.add(sep);
-
         return panel;
     }
 
-
+    // ── Formulario ─────────────────────────────────────────────────────
     private JPanel crearPanelFormulario() {
         JPanel outer = new JPanel(new GridBagLayout());
         outer.setOpaque(false);
 
         JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(COLOR_PANEL);
@@ -141,20 +138,15 @@ public class LoginFrame extends JFrame {
         gbc.insets = new Insets(0, 0, 16, 0);
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1;
 
-        // ── Usuario
-        card.add(crearEtiqueta("Usuario"), gbc);
-        gbc.gridy++;
-        txtUsuario = crearCampoTexto("Introduce tu usuario");
+        card.add(crearEtiqueta("Usuario"), gbc); gbc.gridy++;
+        txtUsuario = crearCampoTexto("Introduce tu nombre de usuario");
         card.add(txtUsuario, gbc);
 
-        // ── Contraseña
         gbc.gridy++;
-        card.add(crearEtiqueta("Contraseña"), gbc);
-        gbc.gridy++;
+        card.add(crearEtiqueta("Contraseña"), gbc); gbc.gridy++;
         txtContrasena = crearCampoPassword("••••••••");
         card.add(txtContrasena, gbc);
 
-        // ── Mostrar contraseña
         gbc.gridy++;
         gbc.insets = new Insets(0, 0, 8, 0);
         chkMostrar = new JCheckBox("Mostrar contraseña");
@@ -162,16 +154,10 @@ public class LoginFrame extends JFrame {
         chkMostrar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         chkMostrar.setOpaque(false);
         chkMostrar.setFocusPainted(false);
-        chkMostrar.addActionListener(e -> {
-            if (chkMostrar.isSelected()) {
-                txtContrasena.setEchoChar((char) 0);
-            } else {
-                txtContrasena.setEchoChar('•');
-            }
-        });
+        chkMostrar.addActionListener(e ->
+            txtContrasena.setEchoChar(chkMostrar.isSelected() ? (char) 0 : '•'));
         card.add(chkMostrar, gbc);
 
-        // ── Mensaje de error/éxito
         gbc.gridy++;
         gbc.insets = new Insets(0, 0, 12, 0);
         lblMensaje = new JLabel(" ");
@@ -180,7 +166,6 @@ public class LoginFrame extends JFrame {
         lblMensaje.setHorizontalAlignment(SwingConstants.CENTER);
         card.add(lblMensaje, gbc);
 
-        // ── Botón login
         gbc.gridy++;
         gbc.insets = new Insets(0, 0, 0, 0);
         btnLogin = crearBotonLogin();
@@ -188,15 +173,14 @@ public class LoginFrame extends JFrame {
 
         outer.add(card, new GridBagConstraints());
 
+        // Enter en password → login; Enter en usuario → foco a password
         txtContrasena.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
+            @Override public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) autenticar();
             }
         });
         txtUsuario.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
+            @Override public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) txtContrasena.requestFocus();
             }
         });
@@ -204,21 +188,18 @@ public class LoginFrame extends JFrame {
         return outer;
     }
 
-
     private JPanel crearPanelPie() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(0, 0, 20, 0));
-
-        JLabel hint = new JLabel("Sistema de gestión del taller · BD: taller_mhp");
+        JLabel hint = new JLabel("Sistema de gestión del taller · BD: Taller_Informatica");
         hint.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         hint.setForeground(new Color(71, 85, 105));
         panel.add(hint);
-
         return panel;
     }
 
-
+    // ── Helpers de UI ─────────────────────────────────────────────────
     private JLabel crearEtiqueta(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -228,8 +209,7 @@ public class LoginFrame extends JFrame {
 
     private JTextField crearCampoTexto(String placeholder) {
         JTextField campo = new JTextField() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(COLOR_CAMPO);
@@ -246,31 +226,26 @@ public class LoginFrame extends JFrame {
                 new LineBorder(COLOR_CAMPO_BORDE, 1, true),
                 new EmptyBorder(10, 14, 10, 14)));
         campo.setPreferredSize(new Dimension(0, 44));
-
         campo.setText(placeholder);
         campo.setForeground(COLOR_SUBTEXTO);
         campo.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) {
                 if (campo.getText().equals(placeholder)) {
-                    campo.setText("");
-                    campo.setForeground(COLOR_TEXTO);
+                    campo.setText(""); campo.setForeground(COLOR_TEXTO);
                 }
             }
             @Override public void focusLost(FocusEvent e) {
                 if (campo.getText().isEmpty()) {
-                    campo.setText(placeholder);
-                    campo.setForeground(COLOR_SUBTEXTO);
+                    campo.setText(placeholder); campo.setForeground(COLOR_SUBTEXTO);
                 }
             }
         });
-
         return campo;
     }
 
     private JPasswordField crearCampoPassword(String placeholder) {
         JPasswordField campo = new JPasswordField() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(COLOR_CAMPO);
@@ -294,18 +269,14 @@ public class LoginFrame extends JFrame {
     private JButton crearBotonLogin() {
         JButton btn = new JButton("Iniciar sesión") {
             private boolean hover = false;
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override public void mouseEntered(MouseEvent e) { hover = true; repaint(); }
-                    @Override public void mouseExited(MouseEvent e)  { hover = false; repaint(); }
-                });
-            }
-            @Override
-            protected void paintComponent(Graphics g) {
+            { addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { hover = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e)  { hover = false; repaint(); }
+            }); }
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color c = hover ? COLOR_BTN_HOVER : COLOR_BTN;
-                g2.setColor(c);
+                g2.setColor(hover ? COLOR_BTN_HOVER : COLOR_BTN);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2.dispose();
                 super.paintComponent(g);
@@ -322,13 +293,17 @@ public class LoginFrame extends JFrame {
         return btn;
     }
 
-    // ── Lógica de autenticación contra la BD ───────────────────────────
+    // ── Lógica de autenticación ────────────────────────────────────────
     /**
-     * Consulta la tabla 'usuarios' de la BD para validar las credenciales.
-     * Redirige al frame correspondiente según el rol del usuario.
+     * Consulta la tabla 'usuario' junto con 'rol_usuario' para validar
+     * las credenciales. El campo de búsqueda es 'nombre' (VARCHAR 100)
+     * y se compara con 'contrasena' (VARCHAR 255).
      *
-     * NOTA: En producción la contraseña debe almacenarse con hash BCrypt y
-     *       compararse con BCrypt.checkpw(plain, hash).
+     * Roles posibles: 'ADMINISTRADOR' → AdminFrame
+     *                 'PROFESOR'      → ProfesorFrame
+     *
+     * NOTA: en producción almacena la contraseña con BCrypt y compara
+     *       con BCrypt.checkpw(plain, hash).
      */
     private void autenticar() {
         String usuario    = txtUsuario.getText().trim();
@@ -341,35 +316,40 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        // Deshabilitar el botón mientras se consulta la BD
         btnLogin.setEnabled(false);
         lblMensaje.setForeground(COLOR_SUBTEXTO);
         lblMensaje.setText("Verificando credenciales...");
 
-  
         new Thread(() -> {
-            String sql = "SELECT nombre, rol FROM usuarios WHERE usuario = ? AND password = ? AND activo = 1";
+            // JOIN con rol_usuario para obtener el nombre del rol
+            String sql =
+                "SELECT u.id_usuario, u.nombre, r.nombre AS rol " +
+                "FROM usuario u " +
+                "JOIN rol_usuario r ON r.id = u.id_rol " +
+                "WHERE u.nombre = ? AND u.contrasena = ?";
+
             try (Connection con = ConexionBD.getInstance().getConn();
                  PreparedStatement ps = con.prepareStatement(sql)) {
 
                 ps.setString(1, usuario);
-                ps.setString(2, contrasena); 
+                ps.setString(2, contrasena); // reemplaza por BCrypt en producción
 
                 ResultSet rs = ps.executeQuery();
 
                 if (rs.next()) {
                     String nombre = rs.getString("nombre");
-                    String rol    = rs.getString("rol");
+                    String rol    = rs.getString("rol"); // 'ADMINISTRADOR' o 'PROFESOR'
+                    int    idUsr  = rs.getInt("id_usuario");
 
                     SwingUtilities.invokeLater(() -> {
                         lblMensaje.setForeground(new Color(74, 222, 128));
                         lblMensaje.setText("✓ Acceso correcto — " + rol);
                         Timer t = new Timer(600, e -> {
                             dispose();
-                            if ("Administrador".equals(rol)) {
-                                new AdminFrame(nombre != null ? nombre : usuario).setVisible(true);
+                            if ("ADMINISTRADOR".equals(rol)) {
+                                new AdminFrame(nombre, idUsr).setVisible(true);
                             } else {
-                                new ProfesorFrame(nombre != null ? nombre : usuario).setVisible(true);
+//                                new ProfesorFrame(nombre, idUsr).setVisible(true);
                             }
                         });
                         t.setRepeats(false);
@@ -380,7 +360,6 @@ public class LoginFrame extends JFrame {
                         lblMensaje.setForeground(COLOR_ERROR);
                         lblMensaje.setText("✗ Usuario o contraseña incorrectos.");
                         btnLogin.setEnabled(true);
-                        sacudirVentana();
                     });
                 }
 
@@ -397,30 +376,9 @@ public class LoginFrame extends JFrame {
         }).start();
     }
 
-
-    private void sacudirVentana() {
-        Point origen = getLocation();
-        int[] offsets = {-8, 8, -6, 6, -4, 4, -2, 2, 0};
-        Timer t = new Timer(40, null);
-        final int[] i = {0};
-        t.addActionListener(e -> {
-            if (i[0] < offsets.length) {
-                setLocation(origen.x + offsets[i[0]], origen.y);
-                i[0]++;
-            } else {
-                ((Timer) e.getSource()).stop();
-                setLocation(origen);
-            }
-        });
-        t.start();
-    }
-
-
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
-
+        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
+        catch (Exception ignored) {}
         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
