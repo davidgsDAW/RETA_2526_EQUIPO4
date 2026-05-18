@@ -132,7 +132,12 @@ INSERT INTO categoria (nombre, descripcion) VALUES
     ('Material fungible',   'Tornillos, bridas, pasta térmica, etc.'),
     ('Equipos completos',   'PCs, portátiles, Raspberry Pi, etc.');
 
-
+INSERT INTO usuario (nombre,contrasena,id_rol)VALUES
+	("david","david",1),
+    ("alejandro","alejandro",1),
+    ("juanca","juanca",1),
+    ("angel","angel",1),
+    ("mario","mario",1);
 
 CREATE INDEX idx_material_categoria ON material(id_categoria);
 CREATE INDEX idx_material_estado    ON material(id_estado);
