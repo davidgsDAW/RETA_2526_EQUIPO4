@@ -86,10 +86,6 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
   </tbody>
 </table>
 
-### Valoración de nuestro trabajo
-
-### Mejoras propuestas
-
 ### Bibliografía y webgrafía
 
 ## 📂 Sobre la Base de Datos
