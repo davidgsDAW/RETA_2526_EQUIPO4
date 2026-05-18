@@ -1,3 +1,22 @@
+<<<<<<< HEAD
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Interfaces\Repo_Inventario.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\HistorialMovimiento.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\ElementoInventario.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Categoria.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Enumerados\Estado_Elemento.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Enumerados\Rol_Usuario.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Prestamo.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Swing\ProfesorFrame.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Interfaces\Repo_Usuario.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Conexion_Base_Datos\ConexionBD.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Ubicacion.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Model_DAO\InventarioDAO.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Swing\LoginFrame.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Usuario.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Enumerados\Localizacion.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Model_DAO\UsuarioDAO.java
+D:\Usuarios\daw107\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Swing\AdminFrame.java
+=======
 D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Categoria.java
 D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\ElementoInventario.java
 D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Ubicacion.java
@@ -15,3 +34,4 @@ D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Jav
 D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\LoginFrame.java
 D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Clases\Usuario.java
 D:\Usuarios\daw116\Documents\GitHub\RETA_2526_EQUIPO4\Documentacion\Proyecto_Java\RETA_2526_TALLER_INFORMATICA\src\main\java\Model_DAO\InventarioDAO.java
+>>>>>>> 32176491f72f054f6691458e12f3c87555477830
