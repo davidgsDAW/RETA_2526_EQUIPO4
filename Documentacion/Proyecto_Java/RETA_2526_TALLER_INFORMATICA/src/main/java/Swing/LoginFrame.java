@@ -1,19 +1,19 @@
+import Conexion_Base_Datos.ConexionBD;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.sql.*;
 
 /**
  * Ventana de inicio de sesión de la aplicación de gestión del taller.
- * Permite autenticar usuarios con perfil Administrador o Profesor.
- *
- * @author IES Miguel Herrero Pereda - DAW 2025/2026
- * @version 1.0
+ * @author David Gómez 
+ * @version 2.0
  */
 public class LoginFrame extends JFrame {
 
-    // ── Colores corporativos ────────────────────────────────────────────
+
     private static final Color COLOR_FONDO        = new Color(15, 23, 42);
     private static final Color COLOR_PANEL        = new Color(30, 41, 59);
     private static final Color COLOR_ACENTO       = new Color(56, 189, 248);
@@ -26,20 +26,14 @@ public class LoginFrame extends JFrame {
     private static final Color COLOR_BTN_HOVER    = new Color(14, 165, 233);
     private static final Color COLOR_ERROR        = new Color(248, 113, 113);
 
-    // ── Credenciales de prueba (en producción usar BD + hash) ──────────
-    private static final String ADMIN_USER  = "admin";
-    private static final String ADMIN_PASS  = "admin123";
-    private static final String PROF_USER   = "profesor";
-    private static final String PROF_PASS   = "prof123";
 
-    // ── Componentes ────────────────────────────────────────────────────
     private JTextField     txtUsuario;
     private JPasswordField txtContrasena;
     private JLabel         lblMensaje;
     private JButton        btnLogin;
     private JCheckBox      chkMostrar;
 
-    // ──────────────────────────────────────────────────────────────────
+
     public LoginFrame() {
         setTitle("Taller IES Miguel Herrero · Acceso al sistema");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,7 +48,7 @@ public class LoginFrame extends JFrame {
         add(crearPanelPie(), BorderLayout.SOUTH);
     }
 
-    // ── Panel cabecera ─────────────────────────────────────────────────
+
     private JPanel crearPanelCabecera() {
         JPanel panel = new JPanel() {
             @Override
@@ -73,7 +67,6 @@ public class LoginFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(new EmptyBorder(40, 40, 20, 40));
 
-        // Icono
         JLabel icono = new JLabel("🖥") {
             @Override
             public void paintComponent(Graphics g) {
@@ -99,7 +92,6 @@ public class LoginFrame extends JFrame {
         subtitulo.setForeground(COLOR_SUBTEXTO);
         subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Separador decorativo
         JSeparator sep = new JSeparator() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -122,7 +114,7 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
-    // ── Panel formulario ───────────────────────────────────────────────
+
     private JPanel crearPanelFormulario() {
         JPanel outer = new JPanel(new GridBagLayout());
         outer.setOpaque(false);
@@ -179,7 +171,7 @@ public class LoginFrame extends JFrame {
         });
         card.add(chkMostrar, gbc);
 
-        // ── Mensaje de error
+        // ── Mensaje de error/éxito
         gbc.gridy++;
         gbc.insets = new Insets(0, 0, 12, 0);
         lblMensaje = new JLabel(" ");
@@ -196,7 +188,6 @@ public class LoginFrame extends JFrame {
 
         outer.add(card, new GridBagConstraints());
 
-        // Enter en contraseña = login
         txtContrasena.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -213,13 +204,13 @@ public class LoginFrame extends JFrame {
         return outer;
     }
 
-    // ── Panel pie ──────────────────────────────────────────────────────
+
     private JPanel crearPanelPie() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        JLabel hint = new JLabel("admin / admin123  ·  profesor / prof123");
+        JLabel hint = new JLabel("Sistema de gestión del taller · BD: taller_mhp");
         hint.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         hint.setForeground(new Color(71, 85, 105));
         panel.add(hint);
@@ -227,7 +218,7 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
-    // ── Helpers de componentes ─────────────────────────────────────────
+
     private JLabel crearEtiqueta(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -256,7 +247,6 @@ public class LoginFrame extends JFrame {
                 new EmptyBorder(10, 14, 10, 14)));
         campo.setPreferredSize(new Dimension(0, 44));
 
-        // Placeholder
         campo.setText(placeholder);
         campo.setForeground(COLOR_SUBTEXTO);
         campo.addFocusListener(new FocusAdapter() {
@@ -332,13 +322,16 @@ public class LoginFrame extends JFrame {
         return btn;
     }
 
-    // ── Lógica de autenticación ────────────────────────────────────────
+    // ── Lógica de autenticación contra la BD ───────────────────────────
     /**
-     * Valida las credenciales y abre la ventana correspondiente según el rol.
-     * En producción se consultaría la BD con contraseña hasheada (BCrypt).
+     * Consulta la tabla 'usuarios' de la BD para validar las credenciales.
+     * Redirige al frame correspondiente según el rol del usuario.
+     *
+     * NOTA: En producción la contraseña debe almacenarse con hash BCrypt y
+     *       compararse con BCrypt.checkpw(plain, hash).
      */
     private void autenticar() {
-        String usuario   = txtUsuario.getText().trim();
+        String usuario    = txtUsuario.getText().trim();
         String contrasena = new String(txtContrasena.getPassword());
 
         lblMensaje.setForeground(COLOR_ERROR);
@@ -348,34 +341,63 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        if (usuario.equals(ADMIN_USER) && contrasena.equals(ADMIN_PASS)) {
-            lblMensaje.setForeground(new Color(74, 222, 128));
-            lblMensaje.setText("✓ Acceso correcto — Administrador");
-            Timer t = new Timer(600, e -> {
-                dispose();
-                new AdminFrame(usuario).setVisible(true);
-            });
-            t.setRepeats(false);
-            t.start();
+        // Deshabilitar el botón mientras se consulta la BD
+        btnLogin.setEnabled(false);
+        lblMensaje.setForeground(COLOR_SUBTEXTO);
+        lblMensaje.setText("Verificando credenciales...");
 
-        } else if (usuario.equals(PROF_USER) && contrasena.equals(PROF_PASS)) {
-            lblMensaje.setForeground(new Color(74, 222, 128));
-            lblMensaje.setText("✓ Acceso correcto — Profesor");
-            Timer t = new Timer(600, e -> {
-                dispose();
-//                new ProfesorFrame(usuario).setVisible(true);
-            });
-            t.setRepeats(false);
-            t.start();
+  
+        new Thread(() -> {
+            String sql = "SELECT nombre, rol FROM usuarios WHERE usuario = ? AND password = ? AND activo = 1";
+            try (Connection con = ConexionBD.getInstance().getConn();
+                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-        } else {
-            lblMensaje.setText("✗ Usuario o contraseña incorrectos.");
-            // Animación de "shake"
-            sacudirVentana();
-        }
+                ps.setString(1, usuario);
+                ps.setString(2, contrasena); 
+
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    String nombre = rs.getString("nombre");
+                    String rol    = rs.getString("rol");
+
+                    SwingUtilities.invokeLater(() -> {
+                        lblMensaje.setForeground(new Color(74, 222, 128));
+                        lblMensaje.setText("✓ Acceso correcto — " + rol);
+                        Timer t = new Timer(600, e -> {
+                            dispose();
+                            if ("Administrador".equals(rol)) {
+                                new AdminFrame(nombre != null ? nombre : usuario).setVisible(true);
+                            } else {
+                                new ProfesorFrame(nombre != null ? nombre : usuario).setVisible(true);
+                            }
+                        });
+                        t.setRepeats(false);
+                        t.start();
+                    });
+                } else {
+                    SwingUtilities.invokeLater(() -> {
+                        lblMensaje.setForeground(COLOR_ERROR);
+                        lblMensaje.setText("✗ Usuario o contraseña incorrectos.");
+                        btnLogin.setEnabled(true);
+                        sacudirVentana();
+                    });
+                }
+
+            } catch (SQLException ex) {
+                SwingUtilities.invokeLater(() -> {
+                    lblMensaje.setForeground(COLOR_ERROR);
+                    lblMensaje.setText("✗ Error de conexión a la base de datos.");
+                    btnLogin.setEnabled(true);
+                    JOptionPane.showMessageDialog(LoginFrame.this,
+                        "No se pudo conectar a la base de datos:\n" + ex.getMessage(),
+                        "Error de BD", JOptionPane.ERROR_MESSAGE);
+                });
+            }
+        }).start();
     }
 
-    /** Efecto visual de error en la ventana. */
+
     private void sacudirVentana() {
         Point origen = getLocation();
         int[] offsets = {-8, 8, -6, 6, -4, 4, -2, 2, 0};
@@ -393,7 +415,7 @@ public class LoginFrame extends JFrame {
         t.start();
     }
 
-    // ── Main ───────────────────────────────────────────────────────────
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

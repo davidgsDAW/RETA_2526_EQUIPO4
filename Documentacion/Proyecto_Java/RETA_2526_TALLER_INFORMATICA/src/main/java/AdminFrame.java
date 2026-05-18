@@ -1,17 +1,33 @@
+import Conexion_Base_Datos.ConexionBD;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 import java.util.Vector;
 
 /**
  * Ventana principal del perfil Administrador.
  * Permite gestión completa del inventario: alta, baja, modificación,
  * consulta, gestión de usuarios e informes.
+ * Los datos se cargan desde la base de datos MySQL (tabla: material).
+ *
+ * Estructura esperada:
+ *   CREATE TABLE material (
+ *       id          INT AUTO_INCREMENT PRIMARY KEY,
+ *       nombre      VARCHAR(150) NOT NULL,
+ *       categoria   VARCHAR(100),
+ *       estado      ENUM('Operativo','Averiado','En reparación','Obsoleto') DEFAULT 'Operativo',
+ *       cantidad    INT DEFAULT 0,
+ *       armario     VARCHAR(20),
+ *       balda       VARCHAR(20),
+ *       descripcion TEXT,
+ *       observaciones TEXT
+ *   );
  *
  * @author IES Miguel Herrero Pereda - DAW 2025/2026
- * @version 1.0
+ * @version 2.0
  */
 public class AdminFrame extends JFrame {
 
@@ -30,21 +46,8 @@ public class AdminFrame extends JFrame {
     private static final Color COLOR_FILA_IMPAR  = new Color(38, 51, 73);
     private static final Color COLOR_SELECCION   = new Color(56, 189, 248, 60);
 
-    // ── Datos de prueba ────────────────────────────────────────────────
     private static final String[] COLUMNAS = {
         "ID", "Nombre", "Categoría", "Estado", "Cantidad", "Armario", "Balda"
-    };
-    private static final Object[][] DATOS_PRUEBA = {
-        {"001", "Portátil Dell Latitude", "PC Prácticas",          "Operativo",    "12", "A1", "B1"},
-        {"002", "Switch HP 24p",          "Equipos de Red",        "Operativo",     "3", "A2", "B2"},
-        {"003", "RAM DDR4 8GB",           "Componentes HW",        "Operativo",    "25", "A3", "B1"},
-        {"004", "Router Cisco 2900",      "Equipos de Red",        "Averiado",      "1", "A2", "B3"},
-        {"005", "Multímetro digital",     "Herramientas",          "Operativo",     "8", "A4", "B2"},
-        {"006", "Cable UTP Cat6 (100m)",  "Material Fungible",     "Operativo",     "5", "A5", "B1"},
-        {"007", "Placa base ATX",         "Componentes HW",        "En reparación", "2", "A3", "B3"},
-        {"008", "Crimpadoras RJ45",       "Herramientas",          "Operativo",     "6", "A4", "B1"},
-        {"009", "Disco SSD 500GB",        "Componentes HW",        "Operativo",    "10", "A3", "B2"},
-        {"010", "Patch Panel 24p",        "Cableado Estructurado", "Operativo",     "2", "A2", "B1"},
     };
 
     // ── Componentes ────────────────────────────────────────────────────
@@ -81,7 +84,6 @@ public class AdminFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setColor(COLOR_SIDEBAR);
                 g2.fillRect(0, 0, getWidth(), getHeight());
-                // Borde derecho sutil
                 g2.setColor(COLOR_BORDE);
                 g2.fillRect(getWidth() - 1, 0, 1, getHeight());
                 g2.dispose();
@@ -92,7 +94,6 @@ public class AdminFrame extends JFrame {
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        // Cabecera del sidebar
         JPanel cabSidebar = new JPanel();
         cabSidebar.setOpaque(false);
         cabSidebar.setLayout(new BoxLayout(cabSidebar, BoxLayout.Y_AXIS));
@@ -114,10 +115,8 @@ public class AdminFrame extends JFrame {
         cabSidebar.add(lblNombre);
         sidebar.add(cabSidebar);
 
-        // Separador
         sidebar.add(crearSeparadorSidebar());
 
-        // Menú
         sidebar.add(crearSeccion("INVENTARIO"));
         sidebar.add(crearItemMenu("📋", "Ver Inventario",      "inventario"));
         sidebar.add(crearItemMenu("➕", "Alta de Material",    "alta"));
@@ -132,7 +131,6 @@ public class AdminFrame extends JFrame {
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(crearSeparadorSidebar());
 
-        // Botón cerrar sesión
         JPanel panelLogout = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 12));
         panelLogout.setOpaque(false);
         panelLogout.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
@@ -223,6 +221,60 @@ public class AdminFrame extends JFrame {
         cardLayout.show(contenidoCentral, id);
     }
 
+    // ── Carga de datos desde la BD ─────────────────────────────────────
+
+    /**
+     * Carga todos los elementos del inventario desde la BD y rellena el modelo de tabla.
+     * Acepta filtros opcionales de nombre, categoría y estado.
+     */
+    private void cargarInventario(String nombre, String categoria, String estado) {
+        modeloTabla.setRowCount(0);
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT id, nombre, categoria, estado, cantidad, armario, balda FROM material WHERE 1=1");
+        if (nombre != null && !nombre.isEmpty())
+            sql.append(" AND LOWER(nombre) LIKE ?");
+        if (categoria != null && !categoria.equals("Todos"))
+            sql.append(" AND categoria = ?");
+        if (estado != null && !estado.equals("Todos"))
+            sql.append(" AND estado = ?");
+        sql.append(" ORDER BY id");
+
+        try (Connection con = ConexionBD.getInstance().getConn();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            if (nombre != null && !nombre.isEmpty())
+                ps.setString(idx++, "%" + nombre.toLowerCase() + "%");
+            if (categoria != null && !categoria.equals("Todos"))
+                ps.setString(idx++, categoria);
+            if (estado != null && !estado.equals("Todos"))
+                ps.setString(idx, estado);
+
+            ResultSet rs = ps.executeQuery();
+            int total = 0;
+            while (rs.next()) {
+                modeloTabla.addRow(new Object[]{
+                    String.format("%03d", rs.getInt("id")),
+                    rs.getString("nombre"),
+                    rs.getString("categoria"),
+                    rs.getString("estado"),
+                    rs.getString("cantidad"),
+                    rs.getString("armario"),
+                    rs.getString("balda")
+                });
+                total++;
+            }
+            lblEstado.setText("✓  Conectado a MySQL · " + total + " elementos · BD: taller_mhp");
+
+        } catch (SQLException ex) {
+            lblEstado.setText("✗  Error al conectar con la BD: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar el inventario:\n" + ex.getMessage(),
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     // ── Panel: Inventario ──────────────────────────────────────────────
     private JPanel crearPanelInventario() {
         JPanel panel = crearPanelBase("📋  Inventario del Taller");
@@ -246,8 +298,20 @@ public class AdminFrame extends JFrame {
         combo.setForeground(COLOR_TEXTO);
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
-        JButton btnBuscar = crearBoton("Buscar", COLOR_ACENTO2);
+        JButton btnBuscar  = crearBoton("Buscar", COLOR_ACENTO2);
         JButton btnRefresh = crearBoton("↻ Actualizar", COLOR_PANEL);
+
+        // Búsqueda filtrada
+        btnBuscar.addActionListener(e ->
+            cargarInventario(busqueda.getText().trim(),
+                             combo.getSelectedItem().toString(), "Todos"));
+
+        // Recargar todo el inventario
+        btnRefresh.addActionListener(e -> {
+            busqueda.setText("");
+            combo.setSelectedIndex(0);
+            cargarInventario(null, null, null);
+        });
 
         toolbar.add(new JLabel("🔍") {{ setForeground(COLOR_SUBTEXTO); }});
         toolbar.add(busqueda);
@@ -256,7 +320,7 @@ public class AdminFrame extends JFrame {
         toolbar.add(btnRefresh);
 
         // Tabla
-        modeloTabla = new DefaultTableModel(DATOS_PRUEBA, COLUMNAS) {
+        modeloTabla = new DefaultTableModel(COLUMNAS, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaInventario = crearTabla(modeloTabla);
@@ -269,13 +333,34 @@ public class AdminFrame extends JFrame {
         // Botones de acción rápida
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
-        acciones.add(crearBoton("➕ Añadir", COLOR_OK));
-        acciones.add(crearBoton("✏️ Editar", COLOR_ACENTO));
-        acciones.add(crearBoton("🗑 Eliminar", COLOR_PELIGRO));
+
+        JButton btnAnadir   = crearBoton("➕ Añadir",   COLOR_OK);
+        JButton btnEditar   = crearBoton("✏️ Editar",  COLOR_ACENTO);
+        JButton btnEliminar = crearBoton("🗑 Eliminar", COLOR_PELIGRO);
+
+        btnAnadir.addActionListener(e -> mostrarPanel("alta"));
+        btnEditar.addActionListener(e -> mostrarPanel("modificar"));
+        btnEliminar.addActionListener(e -> {
+            int fila = tablaInventario.getSelectedRow();
+            if (fila < 0) {
+                JOptionPane.showMessageDialog(this, "Selecciona un elemento primero.",
+                    "Sin selección", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            String id = modeloTabla.getValueAt(fila, 0).toString();
+            eliminarMaterial(Integer.parseInt(id));
+        });
+
+        acciones.add(btnAnadir);
+        acciones.add(btnEditar);
+        acciones.add(btnEliminar);
 
         panel.add(toolbar, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(scroll,  BorderLayout.CENTER);
         panel.add(acciones, BorderLayout.SOUTH);
+
+        // Cargar datos al mostrar el panel
+        SwingUtilities.invokeLater(() -> cargarInventario(null, null, null));
 
         return panel;
     }
@@ -284,64 +369,273 @@ public class AdminFrame extends JFrame {
     private JPanel crearPanelAlta() {
         JPanel panel = crearPanelBase("➕  Alta de Material");
 
-        JPanel form = crearFormulario(new String[][]{
-            {"Nombre del elemento",   "text"},
-            {"Descripción",           "text"},
-            {"Categoría",             "combo:PC Prácticas,Componentes HW,Equipos de Red,Herramientas,Material Fungible,Cableado Estructurado"},
-            {"Estado",                "combo:Operativo,Averiado,En reparación,Obsoleto"},
-            {"Cantidad",              "text"},
-            {"Código de Armario",     "text"},
-            {"Balda",                 "text"},
-            {"Observaciones",         "text"},
-        });
+        // Campos del formulario
+        JTextField tfNombre  = campoTexto();
+        JTextField tfDesc    = campoTexto();
+        JTextField tfCantidad = campoTexto();
+        JTextField tfArmario = campoTexto();
+        JTextField tfBalda   = campoTexto();
+        JTextField tfObs     = campoTexto();
+
+        String[] cats = {"PC Prácticas","Componentes HW","Equipos de Red",
+                         "Herramientas","Material Fungible","Cableado Estructurado"};
+        String[] estados = {"Operativo","Averiado","En reparación","Obsoleto"};
+        JComboBox<String> cbCat    = new JComboBox<>(cats);
+        JComboBox<String> cbEstado = new JComboBox<>(estados);
+        estilizarCombo(cbCat);
+        estilizarCombo(cbEstado);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 12, 12);
+
+        Object[][] filas = {
+            {"Nombre del elemento", tfNombre},   {"Descripción",       tfDesc},
+            {"Categoría",           cbCat},       {"Estado",            cbEstado},
+            {"Cantidad",            tfCantidad},  {"Código de Armario", tfArmario},
+            {"Balda",               tfBalda},     {"Observaciones",     tfObs},
+        };
+        int col = 0, fila = 0;
+        for (Object[] f : filas) {
+            gbc.gridx = col * 2; gbc.gridy = fila; gbc.weightx = 0;
+            JLabel lbl = new JLabel(f[0].toString());
+            lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            lbl.setForeground(COLOR_SUBTEXTO);
+            form.add(lbl, gbc);
+
+            gbc.gridx = col * 2 + 1; gbc.weightx = 1;
+            form.add((Component) f[1], gbc);
+
+            col++;
+            if (col >= 2) { col = 0; fila++; }
+        }
 
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
-        botones.add(crearBoton("Cancelar", COLOR_PANEL));
-        botones.add(crearBoton("✓ Registrar elemento", COLOR_OK));
+        JButton btnCancelar  = crearBoton("Cancelar", COLOR_PANEL);
+        JButton btnRegistrar = crearBoton("✓ Registrar elemento", COLOR_OK);
 
-        panel.add(form, BorderLayout.CENTER);
+        btnCancelar.addActionListener(e -> mostrarPanel("inventario"));
+        btnRegistrar.addActionListener(e -> {
+            String nombre   = tfNombre.getText().trim();
+            String cantidad = tfCantidad.getText().trim();
+            if (nombre.isEmpty() || cantidad.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Nombre y cantidad son obligatorios.", "Campos requeridos",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            try {
+                int cant = Integer.parseInt(cantidad);
+                insertarMaterial(nombre, tfDesc.getText(), cbCat.getSelectedItem().toString(),
+                                 cbEstado.getSelectedItem().toString(), cant,
+                                 tfArmario.getText(), tfBalda.getText(), tfObs.getText());
+                // Limpiar campos
+                tfNombre.setText(""); tfDesc.setText(""); tfCantidad.setText("");
+                tfArmario.setText(""); tfBalda.setText(""); tfObs.setText("");
+                cbCat.setSelectedIndex(0); cbEstado.setSelectedIndex(0);
+                mostrarPanel("inventario");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this,
+                    "La cantidad debe ser un número entero.", "Dato inválido",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        botones.add(btnCancelar);
+        botones.add(btnRegistrar);
+
+        panel.add(form,    BorderLayout.CENTER);
         panel.add(botones, BorderLayout.SOUTH);
         return panel;
+    }
+
+    /** Inserta un nuevo elemento en la tabla material. */
+    private void insertarMaterial(String nombre, String desc, String cat, String estado,
+                                  int cantidad, String armario, String balda, String obs) {
+        String sql = "INSERT INTO material (nombre, descripcion, categoria, estado, cantidad, armario, balda, observaciones) "
+                   + "VALUES (?,?,?,?,?,?,?,?)";
+        try (Connection con = ConexionBD.getInstance().getConn();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ps.setString(2, desc);
+            ps.setString(3, cat);
+            ps.setString(4, estado);
+            ps.setInt(5, cantidad);
+            ps.setString(6, armario);
+            ps.setString(7, balda);
+            ps.setString(8, obs);
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Elemento registrado correctamente.",
+                "Alta exitosa", JOptionPane.INFORMATION_MESSAGE);
+            cargarInventario(null, null, null);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                "Error al insertar en la BD:\n" + ex.getMessage(),
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ── Panel: Modificar ───────────────────────────────────────────────
     private JPanel crearPanelModificar() {
         JPanel panel = crearPanelBase("✏️  Modificar Material");
 
-        JPanel busq = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        busq.setOpaque(false);
         JTextField tfId = new JTextField(10);
         tfId.setBackground(COLOR_PANEL); tfId.setForeground(COLOR_TEXTO);
         tfId.setBorder(new CompoundBorder(new LineBorder(COLOR_BORDE, 1, true), new EmptyBorder(6, 10, 6, 10)));
+
+        // Campos editables
+        JTextField tfNombre   = campoTexto();
+        JTextField tfDesc     = campoTexto();
+        JTextField tfCantidad = campoTexto();
+        JTextField tfArmario  = campoTexto();
+        JTextField tfBalda    = campoTexto();
+        JTextField tfObs      = campoTexto();
+        String[] cats    = {"PC Prácticas","Componentes HW","Equipos de Red","Herramientas","Material Fungible","Cableado Estructurado"};
+        String[] estados = {"Operativo","Averiado","En reparación","Obsoleto"};
+        JComboBox<String> cbCat    = new JComboBox<>(cats);
+        JComboBox<String> cbEstado = new JComboBox<>(estados);
+        estilizarCombo(cbCat);
+        estilizarCombo(cbEstado);
+
+        // Referencia al ID real de BD (no el formateado de pantalla)
+        final int[] idReal = {-1};
+
+        JButton btnBuscar = crearBoton("Buscar", COLOR_ACENTO2);
+        btnBuscar.addActionListener(e -> {
+            String idStr = tfId.getText().trim();
+            if (idStr.isEmpty()) return;
+            try {
+                int id = Integer.parseInt(idStr);
+                String sql = "SELECT * FROM material WHERE id = ?";
+                try (Connection con = ConexionBD.getInstance().getConn();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        idReal[0] = rs.getInt("id");
+                        tfNombre.setText(rs.getString("nombre"));
+                        tfDesc.setText(rs.getString("descripcion") != null ? rs.getString("descripcion") : "");
+                        tfCantidad.setText(String.valueOf(rs.getInt("cantidad")));
+                        tfArmario.setText(rs.getString("armario") != null ? rs.getString("armario") : "");
+                        tfBalda.setText(rs.getString("balda") != null ? rs.getString("balda") : "");
+                        tfObs.setText(rs.getString("observaciones") != null ? rs.getString("observaciones") : "");
+                        // Seleccionar categoría y estado en los combos
+                        String cat = rs.getString("categoria");
+                        for (int i = 0; i < cbCat.getItemCount(); i++)
+                            if (cbCat.getItemAt(i).equals(cat)) { cbCat.setSelectedIndex(i); break; }
+                        String est = rs.getString("estado");
+                        for (int i = 0; i < cbEstado.getItemCount(); i++)
+                            if (cbEstado.getItemAt(i).equals(est)) { cbEstado.setSelectedIndex(i); break; }
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el elemento con ID " + id,
+                            "No encontrado", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (NumberFormatException ex2) {
+                JOptionPane.showMessageDialog(this, "ID debe ser un número.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            } catch (SQLException ex2) {
+                JOptionPane.showMessageDialog(this, "Error al buscar:\n" + ex2.getMessage(),
+                    "Error de BD", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JPanel busq = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        busq.setOpaque(false);
         busq.add(new JLabel("Buscar por ID:") {{ setForeground(COLOR_SUBTEXTO); setFont(new Font("Segoe UI", Font.PLAIN, 13)); }});
         busq.add(tfId);
-        busq.add(crearBoton("Buscar", COLOR_ACENTO2));
+        busq.add(btnBuscar);
 
-        JPanel form = crearFormulario(new String[][]{
-            {"Nombre del elemento",   "text"},
-            {"Descripción",           "text"},
-            {"Categoría",             "combo:PC Prácticas,Componentes HW,Equipos de Red,Herramientas,Material Fungible,Cableado Estructurado"},
-            {"Estado",                "combo:Operativo,Averiado,En reparación,Obsoleto"},
-            {"Cantidad",              "text"},
-            {"Código de Armario",     "text"},
-            {"Balda",                 "text"},
-            {"Observaciones",         "text"},
-        });
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 12, 12);
+
+        Object[][] filas = {
+            {"Nombre del elemento", tfNombre},   {"Descripción",       tfDesc},
+            {"Categoría",           cbCat},       {"Estado",            cbEstado},
+            {"Cantidad",            tfCantidad},  {"Código de Armario", tfArmario},
+            {"Balda",               tfBalda},     {"Observaciones",     tfObs},
+        };
+        int col = 0, fila = 0;
+        for (Object[] f : filas) {
+            gbc.gridx = col * 2; gbc.gridy = fila; gbc.weightx = 0;
+            JLabel lbl = new JLabel(f[0].toString());
+            lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            lbl.setForeground(COLOR_SUBTEXTO);
+            form.add(lbl, gbc);
+            gbc.gridx = col * 2 + 1; gbc.weightx = 1;
+            form.add((Component) f[1], gbc);
+            col++;
+            if (col >= 2) { col = 0; fila++; }
+        }
 
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
-        botones.add(crearBoton("Cancelar", COLOR_PANEL));
-        botones.add(crearBoton("✓ Guardar cambios", COLOR_ACENTO));
+        JButton btnCancelar = crearBoton("Cancelar", COLOR_PANEL);
+        JButton btnGuardar  = crearBoton("✓ Guardar cambios", COLOR_ACENTO);
+
+        btnCancelar.addActionListener(e -> mostrarPanel("inventario"));
+        btnGuardar.addActionListener(e -> {
+            if (idReal[0] < 0) {
+                JOptionPane.showMessageDialog(this, "Busca un elemento primero.", "Sin selección", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            try {
+                int cant = Integer.parseInt(tfCantidad.getText().trim());
+                actualizarMaterial(idReal[0], tfNombre.getText(), tfDesc.getText(),
+                                   cbCat.getSelectedItem().toString(),
+                                   cbEstado.getSelectedItem().toString(),
+                                   cant, tfArmario.getText(), tfBalda.getText(), tfObs.getText());
+                mostrarPanel("inventario");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "La cantidad debe ser un número entero.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        botones.add(btnCancelar);
+        botones.add(btnGuardar);
 
         JPanel centro = new JPanel(new BorderLayout(0, 16));
         centro.setOpaque(false);
         centro.add(busq, BorderLayout.NORTH);
         centro.add(form, BorderLayout.CENTER);
 
-        panel.add(centro, BorderLayout.CENTER);
+        panel.add(centro,  BorderLayout.CENTER);
         panel.add(botones, BorderLayout.SOUTH);
         return panel;
+    }
+
+    /** Actualiza un elemento existente en la BD. */
+    private void actualizarMaterial(int id, String nombre, String desc, String cat,
+                                    String estado, int cantidad, String armario,
+                                    String balda, String obs) {
+        String sql = "UPDATE material SET nombre=?, descripcion=?, categoria=?, estado=?, "
+                   + "cantidad=?, armario=?, balda=?, observaciones=? WHERE id=?";
+        try (Connection con = ConexionBD.getInstance().getConn()
+                ;
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ps.setString(2, desc);
+            ps.setString(3, cat);
+            ps.setString(4, estado);
+            ps.setInt(5, cantidad);
+            ps.setString(6, armario);
+            ps.setString(7, balda);
+            ps.setString(8, obs);
+            ps.setInt(9, id);
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Elemento actualizado correctamente.",
+                "Modificación exitosa", JOptionPane.INFORMATION_MESSAGE);
+            cargarInventario(null, null, null);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                "Error al actualizar en la BD:\n" + ex.getMessage(),
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ── Panel: Baja ────────────────────────────────────────────────────
@@ -353,28 +647,64 @@ public class AdminFrame extends JFrame {
         contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
         contenido.setBorder(new EmptyBorder(20, 0, 0, 0));
 
-        JPanel busq = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        busq.setOpaque(false);
         JTextField tfId = new JTextField(12);
         tfId.setBackground(COLOR_PANEL); tfId.setForeground(COLOR_TEXTO);
         tfId.setBorder(new CompoundBorder(new LineBorder(COLOR_BORDE, 1, true), new EmptyBorder(6, 10, 6, 10)));
-        busq.add(new JLabel("ID del elemento:") {{ setForeground(COLOR_SUBTEXTO); setFont(new Font("Segoe UI", Font.PLAIN, 13)); }});
-        busq.add(tfId);
-        busq.add(crearBoton("Buscar", COLOR_ACENTO2));
-        busq.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Tarjeta de vista previa
-        JPanel preview = crearCard("Vista previa del elemento a eliminar");
-        JLabel[] campos = new JLabel[5];
+        // Info del elemento buscado
+        JLabel[] lblsVal = new JLabel[5];
         String[] etiq = {"Nombre:", "Categoría:", "Estado:", "Cantidad:", "Ubicación:"};
-        String[] vals  = {"Portátil Dell Latitude", "PC Prácticas", "Operativo", "12", "Armario A1 · Balda B1"};
         JPanel infoGrid = new JPanel(new GridLayout(5, 2, 8, 8));
         infoGrid.setOpaque(false);
         for (int i = 0; i < 5; i++) {
             JLabel e = new JLabel(etiq[i]); e.setForeground(COLOR_SUBTEXTO); e.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            JLabel v = new JLabel(vals[i]);  v.setForeground(COLOR_TEXTO);    v.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            infoGrid.add(e); infoGrid.add(v);
+            lblsVal[i] = new JLabel("—"); lblsVal[i].setForeground(COLOR_TEXTO); lblsVal[i].setFont(new Font("Segoe UI", Font.BOLD, 13));
+            infoGrid.add(e); infoGrid.add(lblsVal[i]);
         }
+
+        final int[] idReal = {-1};
+
+        JButton btnBuscarBaja = crearBoton("Buscar", COLOR_ACENTO2);
+        btnBuscarBaja.addActionListener(e -> {
+            String idStr = tfId.getText().trim();
+            if (idStr.isEmpty()) return;
+            try {
+                int id = Integer.parseInt(idStr);
+                String sql = "SELECT * FROM material WHERE id = ?";
+                try (Connection con = ConexionBD.getInstance().getConn();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        idReal[0] = rs.getInt("id");
+                        lblsVal[0].setText(rs.getString("nombre"));
+                        lblsVal[1].setText(rs.getString("categoria"));
+                        lblsVal[2].setText(rs.getString("estado"));
+                        lblsVal[3].setText(String.valueOf(rs.getInt("cantidad")));
+                        lblsVal[4].setText("Armario " + rs.getString("armario") + " · Balda " + rs.getString("balda"));
+                    } else {
+                        idReal[0] = -1;
+                        for (JLabel l : lblsVal) l.setText("—");
+                        JOptionPane.showMessageDialog(this, "No se encontró el elemento con ID " + id,
+                            "No encontrado", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (NumberFormatException ex2) {
+                JOptionPane.showMessageDialog(this, "ID debe ser un número.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            } catch (SQLException ex2) {
+                JOptionPane.showMessageDialog(this, "Error al buscar:\n" + ex2.getMessage(),
+                    "Error de BD", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JPanel busq = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        busq.setOpaque(false);
+        busq.add(new JLabel("ID del elemento:") {{ setForeground(COLOR_SUBTEXTO); setFont(new Font("Segoe UI", Font.PLAIN, 13)); }});
+        busq.add(tfId);
+        busq.add(btnBuscarBaja);
+        busq.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel preview = crearCard("Vista previa del elemento a eliminar");
         preview.add(infoGrid, BorderLayout.CENTER);
 
         JPanel aviso = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -384,20 +714,56 @@ public class AdminFrame extends JFrame {
         warn.setFont(new Font("Segoe UI", Font.ITALIC, 13));
         aviso.add(warn);
 
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        botones.setOpaque(false);
-        botones.add(crearBoton("Cancelar", COLOR_PANEL));
-        botones.add(crearBoton("🗑 Confirmar baja", COLOR_PELIGRO));
-
         contenido.add(busq);
         contenido.add(Box.createVerticalStrut(16));
         contenido.add(preview);
         contenido.add(Box.createVerticalStrut(12));
         contenido.add(aviso);
 
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        botones.setOpaque(false);
+        JButton btnCancelar = crearBoton("Cancelar", COLOR_PANEL);
+        JButton btnConfirmar = crearBoton("🗑 Confirmar baja", COLOR_PELIGRO);
+        btnCancelar.addActionListener(e -> mostrarPanel("inventario"));
+        btnConfirmar.addActionListener(e -> {
+            if (idReal[0] < 0) {
+                JOptionPane.showMessageDialog(this, "Busca un elemento primero.", "Sin selección", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Confirmas la baja de: " + lblsVal[0].getText() + "?\nEsta acción no se puede deshacer.",
+                "Confirmar baja", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (confirm == JOptionPane.YES_OPTION) {
+                eliminarMaterial(idReal[0]);
+                idReal[0] = -1;
+                for (JLabel l : lblsVal) l.setText("—");
+                tfId.setText("");
+                mostrarPanel("inventario");
+            }
+        });
+        botones.add(btnCancelar);
+        botones.add(btnConfirmar);
+
         panel.add(contenido, BorderLayout.CENTER);
-        panel.add(botones, BorderLayout.SOUTH);
+        panel.add(botones,   BorderLayout.SOUTH);
         return panel;
+    }
+
+    /** Elimina un elemento del inventario por su ID. */
+    private void eliminarMaterial(int id) {
+        String sql = "DELETE FROM material WHERE id = ?";
+        try (Connection con = ConexionBD.getInstance().getConn();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Elemento eliminado correctamente.",
+                "Baja exitosa", JOptionPane.INFORMATION_MESSAGE);
+            cargarInventario(null, null, null);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                "Error al eliminar de la BD:\n" + ex.getMessage(),
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ── Panel: Usuarios ────────────────────────────────────────────────
@@ -405,16 +771,11 @@ public class AdminFrame extends JFrame {
         JPanel panel = crearPanelBase("👤  Gestión de Usuarios");
 
         String[] cols = {"ID", "Usuario", "Nombre completo", "Rol", "Estado", "Último acceso"};
-        Object[][] datos = {
-            {"U01", "admin",     "Admin Sistema",       "Administrador", "Activo",   "14/05/2026 09:12"},
-            {"U02", "profesor",  "Ana García López",    "Profesor",      "Activo",   "13/05/2026 16:45"},
-            {"U03", "jmartinez", "Juan Martínez Ruiz",  "Profesor",      "Activo",   "12/05/2026 11:30"},
-            {"U04", "lperez",    "Laura Pérez Sánchez", "Profesor",      "Inactivo", "01/04/2026 08:00"},
-        };
-        DefaultTableModel modelo = new DefaultTableModel(datos, cols) {
+        DefaultTableModel modeloU = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        JTable tabla = crearTabla(modelo);
+
+        JTable tabla = crearTabla(modeloU);
         JScrollPane scroll = new JScrollPane(tabla);
         scroll.setOpaque(false);
         scroll.getViewport().setBackground(COLOR_FONDO);
@@ -423,12 +784,42 @@ public class AdminFrame extends JFrame {
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
         botones.add(crearBoton("➕ Nuevo usuario", COLOR_OK));
-        botones.add(crearBoton("✏️ Editar", COLOR_ACENTO));
-        botones.add(crearBoton("🔒 Desactivar", COLOR_PELIGRO));
+        botones.add(crearBoton("✏️ Editar",       COLOR_ACENTO));
+        botones.add(crearBoton("🔒 Desactivar",   COLOR_PELIGRO));
 
-        panel.add(scroll, BorderLayout.CENTER);
-        panel.add(botones, BorderLayout.SOUTH);
+        panel.add(scroll,   BorderLayout.CENTER);
+        panel.add(botones,  BorderLayout.SOUTH);
+
+        // Cargar usuarios desde la BD al mostrar el panel
+        SwingUtilities.invokeLater(() -> cargarUsuarios(modeloU));
+
         return panel;
+    }
+
+    /** Carga los usuarios desde la BD. */
+    private void cargarUsuarios(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        String sql = "SELECT id, usuario, nombre, rol, IF(activo=1,'Activo','Inactivo') AS estado, ultimo_acceso FROM usuarios ORDER BY id";
+        try (Connection con = ConexionBD.getInstance().getConn();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String acceso = rs.getTimestamp("ultimo_acceso") != null
+                    ? rs.getTimestamp("ultimo_acceso").toString() : "—";
+                modelo.addRow(new Object[]{
+                    String.format("U%02d", rs.getInt("id")),
+                    rs.getString("usuario"),
+                    rs.getString("nombre"),
+                    rs.getString("rol"),
+                    rs.getString("estado"),
+                    acceso
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar usuarios:\n" + ex.getMessage(),
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ── Panel: Informes ────────────────────────────────────────────────
@@ -440,17 +831,13 @@ public class AdminFrame extends JFrame {
         grid.setBorder(new EmptyBorder(16, 0, 0, 0));
 
         grid.add(crearTarjetaInforme("📋 Listado completo",
-                "Inventario completo de todos los elementos del taller.",
-                COLOR_ACENTO));
+                "Inventario completo de todos los elementos del taller.", COLOR_ACENTO));
         grid.add(crearTarjetaInforme("🏷 Por categoría / estado",
-                "Filtra el inventario por tipo de material o estado actual.",
-                COLOR_ACENTO2));
+                "Filtra el inventario por tipo de material o estado actual.", COLOR_ACENTO2));
         grid.add(crearTarjetaInforme("📍 Por armario / balda",
-                "Localización de todos los elementos por ubicación física.",
-                new Color(34, 197, 94)));
+                "Localización de todos los elementos por ubicación física.", new Color(34, 197, 94)));
         grid.add(crearTarjetaInforme("📤 Exportar PDF / Excel",
-                "Genera un archivo exportable con los informes seleccionados.",
-                new Color(251, 146, 60)));
+                "Genera un archivo exportable con los informes seleccionados.", new Color(251, 146, 60)));
 
         panel.add(grid, BorderLayout.CENTER);
         return panel;
@@ -467,8 +854,8 @@ public class AdminFrame extends JFrame {
                     @Override public void mouseExited(MouseEvent e)  { hover = false; repaint(); }
                     @Override public void mouseClicked(MouseEvent e) {
                         JOptionPane.showMessageDialog(AdminFrame.this,
-                                "Generando informe: " + titulo.replaceAll("[^a-zA-Z ñáéíóú]", "").trim(),
-                                "Informes", JOptionPane.INFORMATION_MESSAGE);
+                            "Generando informe: " + titulo.replaceAll("[^a-zA-Z ñáéíóú]", "").trim(),
+                            "Informes", JOptionPane.INFORMATION_MESSAGE);
                     }
                 });
             }
@@ -480,7 +867,6 @@ public class AdminFrame extends JFrame {
                 g2.setColor(hover ? acento : COLOR_BORDE);
                 g2.setStroke(new BasicStroke(hover ? 2f : 1f));
                 g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 12, 12);
-                // Banda de color superior
                 g2.setColor(acento);
                 g2.fillRoundRect(0, 0, getWidth(), 4, 4, 4);
                 g2.dispose();
@@ -521,7 +907,6 @@ public class AdminFrame extends JFrame {
         contenido.setOpaque(false);
         contenido.setBorder(new EmptyBorder(16, 0, 0, 0));
 
-        // Importar
         JPanel pImport = crearCard("📥  Importar datos");
         JPanel impContent = new JPanel();
         impContent.setOpaque(false);
@@ -542,7 +927,6 @@ public class AdminFrame extends JFrame {
         impContent.add(btnImport);
         pImport.add(impContent, BorderLayout.CENTER);
 
-        // Exportar
         JPanel pExport = crearCard("📤  Exportar datos");
         JPanel expContent = new JPanel();
         expContent.setOpaque(false);
@@ -552,7 +936,7 @@ public class AdminFrame extends JFrame {
         JLabel lExpFormatos = new JLabel("Formatos: CSV, XLSX, PDF");
         lExpFormatos.setForeground(COLOR_ACENTO); lExpFormatos.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lExpFormatos.setBorder(new EmptyBorder(12, 0, 12, 0));
-        JButton btnExpCSV   = crearBoton("Exportar CSV",  COLOR_ACENTO2);
+        JButton btnExpCSV   = crearBoton("Exportar CSV",   COLOR_ACENTO2);
         JButton btnExpExcel = crearBoton("Exportar Excel", new Color(34, 197, 94));
         JButton btnExpPDF   = crearBoton("Exportar PDF",   new Color(251, 146, 60));
         btnExpCSV.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -582,16 +966,16 @@ public class AdminFrame extends JFrame {
                 new MatteBorder(1, 0, 0, 0, COLOR_BORDE),
                 new EmptyBorder(6, 16, 6, 16)));
 
-        lblEstado = new JLabel("✓  Conectado a MySQL · 10 elementos en inventario · BD: taller_mhp");
+        lblEstado = new JLabel("Conectando a MySQL...");
         lblEstado.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblEstado.setForeground(COLOR_SUBTEXTO);
 
-        JLabel lblFecha = new JLabel("14/05/2026");
+        JLabel lblFecha = new JLabel(new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date()));
         lblFecha.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblFecha.setForeground(COLOR_SUBTEXTO);
 
         barra.add(lblEstado, BorderLayout.WEST);
-        barra.add(lblFecha, BorderLayout.EAST);
+        barra.add(lblFecha,  BorderLayout.EAST);
         return barra;
     }
 
@@ -662,49 +1046,22 @@ public class AdminFrame extends JFrame {
         return tabla;
     }
 
-    private JPanel crearFormulario(String[][] campos) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 0, 12, 12);
+    private JTextField campoTexto() {
+        JTextField tf = new JTextField();
+        tf.setBackground(new Color(51, 65, 85));
+        tf.setForeground(COLOR_TEXTO);
+        tf.setCaretColor(COLOR_ACENTO);
+        tf.setBorder(new CompoundBorder(
+                new LineBorder(COLOR_BORDE, 1, true),
+                new EmptyBorder(6, 10, 6, 10)));
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        return tf;
+    }
 
-        int fila = 0, col = 0;
-        for (String[] campo : campos) {
-            String nombre = campo[0];
-            String tipo   = campo[1];
-
-            gbc.gridx = col * 2;
-            gbc.gridy = fila;
-            gbc.weightx = 0;
-            JLabel lbl = new JLabel(nombre);
-            lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            lbl.setForeground(COLOR_SUBTEXTO);
-            panel.add(lbl, gbc);
-
-            gbc.gridx = col * 2 + 1;
-            gbc.weightx = 1;
-            if (tipo.startsWith("combo:")) {
-                String[] opciones = tipo.substring(6).split(",");
-                JComboBox<String> cb = new JComboBox<>(opciones);
-                cb.setBackground(COLOR_PANEL);
-                cb.setForeground(COLOR_TEXTO);
-                cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                panel.add(cb, gbc);
-            } else {
-                JTextField tf = new JTextField();
-                tf.setBackground(COLOR_PANEL);
-                tf.setForeground(COLOR_TEXTO);
-                tf.setCaretColor(COLOR_ACENTO);
-                tf.setBorder(new CompoundBorder(new LineBorder(COLOR_BORDE, 1, true), new EmptyBorder(6, 10, 6, 10)));
-                tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                panel.add(tf, gbc);
-            }
-
-            col++;
-            if (col >= 2) { col = 0; fila++; }
-        }
-        return panel;
+    private void estilizarCombo(JComboBox<?> cb) {
+        cb.setBackground(COLOR_PANEL);
+        cb.setForeground(COLOR_TEXTO);
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     }
 
     private JButton crearBoton(String texto, Color fondo) {
