@@ -138,7 +138,8 @@ INSERT INTO usuario (nombre,contrasena,id_rol)VALUES
     ("juanca","juanca",1),
     ("angel","angel",1),
     ("mario","mario",1);
-
+    
+    
 CREATE INDEX idx_material_categoria ON material(id_categoria);
 CREATE INDEX idx_material_estado    ON material(id_estado);
 CREATE INDEX idx_material_ubicacion ON material(id_ubicacion);
