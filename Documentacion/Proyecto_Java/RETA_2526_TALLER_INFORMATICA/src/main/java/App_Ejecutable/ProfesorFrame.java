@@ -10,18 +10,19 @@ import java.net.URI;
 import java.sql.*;
 
 /**
- * Ventana principal del perfil Profesor.
- * Permite consulta del inventario, búsqueda y filtrado por nombre,
- * categoría, estado o código, localización visual del material
- * (abre el sitio web) y generación de listados.
+ * Ventana principal para los usuarios con perfil de Profesor.
+ * Tiene permisos de solo lectura sobre el inventario, puede buscar y filtrar,
+ * localizar materiales en el mapa web del taller y generar informes.
+ * 
  * Los datos se cargan desde la base de datos MySQL (tabla: material).
- *
- * @author IES Miguel Herrero Pereda - DAW 2025/2026
+ * La localización visual se hace abriendo un navegador con la URL del MV2.
+ * 
+ * @author David Gómez
  * @version 2.0
  */
 public class ProfesorFrame extends JFrame {
 
-    // ── Paleta ─────────────────────────────────────────────────────────
+    // Colores de la interfaz
     private static final Color COLOR_FONDO       = new Color(15, 23, 42);
     private static final Color COLOR_SIDEBAR     = new Color(23, 33, 52);
     private static final Color COLOR_PANEL       = new Color(30, 41, 59);
@@ -37,18 +38,19 @@ public class ProfesorFrame extends JFrame {
     private static final Color COLOR_FILA_IMPAR  = new Color(38, 51, 73);
     private static final Color COLOR_SELECCION   = new Color(56, 189, 248, 60);
 
-    // URL del sitio web de localización (MV2)
-    private static final String URL_WEB_TALLER = "http://192.168.56.10/taller/";
+    // URL del sitio web que muestra el mapa del taller (MV2)
+    private static final String URL_WEB_TALLER = "http://10.0.10.100";
 
+    // Columnas de la tabla
     private static final String[] COLUMNAS = {
         "ID", "Nombre", "Categoría", "Estado", "Cantidad", "Armario", "Balda"
     };
 
-    // ── Componentes ────────────────────────────────────────────────────
+    // Componentes principales
     private JPanel            contenidoCentral;
     private CardLayout        cardLayout;
-    private DefaultTableModel modeloTabla;        // tabla principal (consulta)
-    private DefaultTableModel modeloResultados;   // tabla búsqueda
+    private DefaultTableModel modeloTabla;
+    private DefaultTableModel modeloResultados;
     private JTable            tablaInventario;
     private JTextField        txtBusqueda;
     private JComboBox<String> cbCategoria;
@@ -57,7 +59,6 @@ public class ProfesorFrame extends JFrame {
     private JLabel            lblItemSeleccionado;
     private String            usuarioActual;
 
-    // ──────────────────────────────────────────────────────────────────
     public ProfesorFrame(String usuario) {
         this.usuarioActual = usuario;
         setTitle("Taller IES MHP · Panel Profesor — " + usuario);
@@ -75,7 +76,6 @@ public class ProfesorFrame extends JFrame {
         mostrarPanel("consulta");
     }
 
-    // ── Sidebar ────────────────────────────────────────────────────────
     private JPanel crearSidebar() {
         JPanel sidebar = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
@@ -112,7 +112,6 @@ public class ProfesorFrame extends JFrame {
         cab.add(Box.createVerticalStrut(4));
         cab.add(lblNombre);
         sidebar.add(cab);
-
         sidebar.add(crearSeparadorSidebar());
         sidebar.add(crearSeccion("INVENTARIO"));
         sidebar.add(crearItemMenu("📋", "Consultar Inventario", "consulta"));
@@ -194,7 +193,6 @@ public class ProfesorFrame extends JFrame {
         return item;
     }
 
-    // ── Área central con CardLayout ─────────────────────────────────────
     private JPanel crearContenidoCentral() {
         cardLayout = new CardLayout();
         contenidoCentral = new JPanel(cardLayout);
@@ -213,18 +211,6 @@ public class ProfesorFrame extends JFrame {
         cardLayout.show(contenidoCentral, id);
     }
 
-    // ── Carga de datos desde la BD ──────────────────────────────────────
-
-    /**
-     * Carga el inventario desde la BD aplicando filtros opcionales.
-     * Rellena el modelo de tabla indicado.
-     *
-     * @param modelo    modelo de tabla a rellenar
-     * @param nombre    texto a buscar en el nombre (null o vacío = todos)
-     * @param categoria categoría seleccionada ("Todas" = sin filtro)
-     * @param estado    estado seleccionado ("Todos" = sin filtro)
-     * @param armario   código de armario (null o vacío = todos)
-     */
     private void cargarInventario(DefaultTableModel modelo,
                                   String nombre, String categoria,
                                   String estado, String armario) {
@@ -279,9 +265,6 @@ public class ProfesorFrame extends JFrame {
         }
     }
 
-    /**
-     * Devuelve todos los armarios distintos existentes en la BD para los combos de informes.
-     */
     private String[] cargarArmarios() {
         java.util.List<String> lista = new java.util.ArrayList<>();
         lista.add("Todos");
@@ -294,9 +277,6 @@ public class ProfesorFrame extends JFrame {
         return lista.toArray(new String[0]);
     }
 
-    /**
-     * Devuelve todas las baldas distintas existentes en la BD.
-     */
     private String[] cargarBaldas() {
         java.util.List<String> lista = new java.util.ArrayList<>();
         lista.add("Todas");
@@ -314,11 +294,9 @@ public class ProfesorFrame extends JFrame {
             + " elemento(s) · BD: taller_mhp  ·  Perfil: Profesor (solo lectura)");
     }
 
-    // ── Panel: Consultar Inventario ─────────────────────────────────────
     private JPanel crearPanelConsulta() {
         JPanel panel = crearPanelBase("📋  Inventario del Taller");
 
-        // Barra superior info
         JPanel barraInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         barraInfo.setOpaque(false);
         JLabel lblInfo = new JLabel("Vista de solo lectura · cargando datos...");
@@ -327,7 +305,6 @@ public class ProfesorFrame extends JFrame {
         barraInfo.add(lblInfo);
         panel.add(barraInfo, BorderLayout.NORTH);
 
-        // Tabla principal
         modeloTabla = new DefaultTableModel(COLUMNAS, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -340,7 +317,6 @@ public class ProfesorFrame extends JFrame {
         scroll.setBorder(BorderFactory.createLineBorder(COLOR_BORDE, 1));
         panel.add(scroll, BorderLayout.CENTER);
 
-        // Barra inferior
         JPanel barraInf = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         barraInf.setOpaque(false);
 
@@ -357,7 +333,6 @@ public class ProfesorFrame extends JFrame {
         barraInf.add(btnLoc);
         panel.add(barraInf, BorderLayout.SOUTH);
 
-        // Carga inicial desde la BD
         SwingUtilities.invokeLater(() -> {
             cargarInventario(modeloTabla, null, null, null, null);
             lblInfo.setText("Vista de solo lectura · " + modeloTabla.getRowCount() + " elementos");
@@ -366,7 +341,6 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
-    // ── Panel: Buscar / Filtrar ─────────────────────────────────────────
     private JPanel crearPanelBuscar() {
         JPanel panel = crearPanelBase("🔍  Buscar y Filtrar Material");
 
@@ -378,14 +352,12 @@ public class ProfesorFrame extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 12, 12);
 
-        // Fila 0 — Nombre
         gbc.gridy = 0; gbc.gridx = 0; gbc.weightx = 0;
         filtros.add(etiqueta("Nombre / descripción"), gbc);
         gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 3;
         txtBusqueda = campoTexto();
         filtros.add(txtBusqueda, gbc);
 
-        // Fila 1 — Categoría + Estado
         gbc.gridwidth = 1;
         gbc.gridy = 1; gbc.gridx = 0; gbc.weightx = 0;
         filtros.add(etiqueta("Categoría"), gbc);
@@ -406,14 +378,12 @@ public class ProfesorFrame extends JFrame {
         estilizarCombo(cbEstado);
         filtros.add(cbEstado, gbc);
 
-        // Fila 2 — Armario
         gbc.gridy = 2; gbc.gridx = 0; gbc.weightx = 0;
         filtros.add(etiqueta("Código armario"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
         JTextField txtArmario = campoTexto();
         filtros.add(txtArmario, gbc);
 
-        // Botones
         gbc.gridy = 3; gbc.gridx = 0; gbc.gridwidth = 4;
         gbc.insets = new Insets(8, 0, 0, 0);
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -421,7 +391,6 @@ public class ProfesorFrame extends JFrame {
         JButton btnLimpiar = crearBoton("Limpiar",    COLOR_PANEL);
         JButton btnBuscar  = crearBoton("🔍  Buscar", COLOR_ACENTO);
 
-        // Tabla de resultados (se inicializa aquí para acceder en los listeners)
         modeloResultados = new DefaultTableModel(COLUMNAS, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -456,7 +425,6 @@ public class ProfesorFrame extends JFrame {
         scroll.getViewport().setBackground(COLOR_FONDO);
         scroll.setBorder(BorderFactory.createLineBorder(COLOR_BORDE, 1));
 
-        // Botón localizar desde resultados
         JPanel barraInf = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         barraInf.setOpaque(false);
         JButton btnLoc = crearBoton("📍  Localizar seleccionado", COLOR_ACENTO2);
@@ -479,18 +447,15 @@ public class ProfesorFrame extends JFrame {
         panel.add(scroll,   BorderLayout.CENTER);
         panel.add(barraInf, BorderLayout.SOUTH);
 
-        // Carga inicial
         SwingUtilities.invokeLater(() ->
             cargarInventario(modeloResultados, null, null, null, null));
 
         return panel;
     }
 
-    // ── Panel: Localizar Material ───────────────────────────────────────
     private JPanel crearPanelLocalizar() {
         JPanel panel = crearPanelBase("📍  Localizar Material en el Taller");
 
-        // Card superior — selector dinámico desde BD
         JPanel cardSel = crearCard("Seleccionar elemento a localizar");
 
         JPanel fila = new JPanel(new GridBagLayout());
@@ -515,7 +480,6 @@ public class ProfesorFrame extends JFrame {
         cardSel.add(fila, BorderLayout.CENTER);
         panel.add(cardSel, BorderLayout.NORTH);
 
-        // Card central — info de ubicación
         JPanel cardInfo = crearCard("Ubicación del elemento");
 
         JPanel infoGrid = new JPanel(new GridLayout(2, 4, 16, 12));
@@ -549,11 +513,8 @@ public class ProfesorFrame extends JFrame {
         cardInfo.add(lblItemSeleccionado, BorderLayout.CENTER);
         cardInfo.add(btnWeb,              BorderLayout.SOUTH);
 
-        // Datos de BD indexados por posición en el combo (excluyendo el primer item "—")
-        // Se almacena como lista de Object[]
         java.util.List<Object[]> filasBD = new java.util.ArrayList<>();
 
-        // Cargar elementos en el combo desde la BD
         SwingUtilities.invokeLater(() -> {
             String sql = "SELECT id, nombre, categoria, armario, balda FROM material ORDER BY nombre";
             try (Connection con = ConexionBD.getInstance().getConn();
@@ -577,7 +538,6 @@ public class ProfesorFrame extends JFrame {
             }
         });
 
-        // Listener del botón localizar
         btnLocalizar.addActionListener(e -> {
             int idx = cbElemento.getSelectedIndex();
             if (idx == 0) {
@@ -596,7 +556,6 @@ public class ProfesorFrame extends JFrame {
             lblItemSeleccionado.setForeground(COLOR_OK);
             btnAbrirWeb.setEnabled(true);
 
-            // Evitar acumular listeners: reemplazamos con una lambda nueva
             for (ActionListener al : btnAbrirWeb.getActionListeners())
                 btnAbrirWeb.removeActionListener(al);
             btnAbrirWeb.addActionListener(ev ->
@@ -609,14 +568,12 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
-    // ── Panel: Informes ─────────────────────────────────────────────────
     private JPanel crearPanelInformes() {
         JPanel panel = crearPanelBase("📄  Generar Listados");
 
         JPanel contenido = new JPanel(new GridLayout(1, 3, 16, 0));
         contenido.setOpaque(false);
 
-        // ── Tarjeta 1: Listado completo
         JPanel c1 = crearCard("📋  Listado completo");
         JLabel d1 = new JLabel("<html><body style='width:150px;color:#94A3B8'>Exporta el inventario<br>completo del taller.</body></html>");
         d1.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -626,7 +583,6 @@ public class ProfesorFrame extends JFrame {
         p1.add(d1, BorderLayout.CENTER); p1.add(b1, BorderLayout.SOUTH);
         c1.add(p1, BorderLayout.CENTER);
 
-        // ── Tarjeta 2: Por categoría / estado (combos con valores fijos)
         JPanel c2 = crearCard("🗂  Por categoría / estado");
         JPanel sel2 = new JPanel(new GridLayout(4, 1, 0, 8)); sel2.setOpaque(false);
         JComboBox<String> cbCat2 = new JComboBox<>(new String[]{
@@ -647,7 +603,6 @@ public class ProfesorFrame extends JFrame {
         p2.add(sel2, BorderLayout.CENTER); p2.add(b2, BorderLayout.SOUTH);
         c2.add(p2, BorderLayout.CENTER);
 
-        // ── Tarjeta 3: Por armario / balda (combos cargados desde BD)
         JPanel c3 = crearCard("📍  Por armario / balda");
         JPanel sel3 = new JPanel(new GridLayout(4, 1, 0, 8)); sel3.setOpaque(false);
         JComboBox<String> cbArm = new JComboBox<>(cargarArmarios());
@@ -676,7 +631,6 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
-    // ── Barra de estado ─────────────────────────────────────────────────
     private JPanel crearBarraEstado() {
         JPanel barra = new JPanel(new BorderLayout());
         barra.setBackground(new Color(10, 16, 30));
@@ -698,12 +652,6 @@ public class ProfesorFrame extends JFrame {
         return barra;
     }
 
-    // ── Lógica ──────────────────────────────────────────────────────────
-
-    /**
-     * Intenta localizar el elemento seleccionado en la tabla principal
-     * y abre el sitio web correspondiente.
-     */
     private void localizarSeleccionado() {
         int fila = tablaInventario.getSelectedRow();
         if (fila < 0) {
@@ -719,10 +667,6 @@ public class ProfesorFrame extends JFrame {
         );
     }
 
-    /**
-     * Abre el navegador con el sitio web de localización del taller,
-     * pasando armario y balda como parámetros en la URL.
-     */
     private void abrirWebLocalizar(String nombre, String armario, String balda) {
         String url = URL_WEB_TALLER + "?armario=" + armario + "&balda=" + balda
                 + "&item=" + nombre.replace(" ", "%20");
@@ -731,20 +675,11 @@ public class ProfesorFrame extends JFrame {
             lblEstado.setText("✓  Abriendo web: " + url);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                "No se pudo abrir el navegador.\nURL: " + url
-                + "\n\nComprueba que MV2 está activa y accesible.",
+                "No se pudo abrir el navegador.\nURL: " + url,
                 "Error al abrir el sitio web", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-    /**
-     * Genera un informe según el tipo y los filtros indicados.
-     * Consulta la BD, muestra el recuento y abre un diálogo resumen.
-     *
-     * @param tipo      "completo", "categoria" o "ubicacion"
-     * @param filtro1   categoría o armario según el tipo
-     * @param filtro2   estado o balda según el tipo
-     */
     private void generarListado(String tipo, String filtro1, String filtro2) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS total FROM material WHERE 1=1");
@@ -778,8 +713,7 @@ public class ProfesorFrame extends JFrame {
             };
             JOptionPane.showMessageDialog(this,
                 "Informe generado correctamente.\n\n" + desc
-                + "\n\nElementos encontrados: " + total
-                + "\n\n(En producción se exportaría a PDF / Excel.)",
+                + "\n\nElementos encontrados: " + total,
                 "Informe generado", JOptionPane.INFORMATION_MESSAGE);
             lblEstado.setText("✓  Informe generado: " + desc.replace("\n", " · "));
 
@@ -800,7 +734,7 @@ public class ProfesorFrame extends JFrame {
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────
+
     private JPanel crearPanelBase(String titulo) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(false);

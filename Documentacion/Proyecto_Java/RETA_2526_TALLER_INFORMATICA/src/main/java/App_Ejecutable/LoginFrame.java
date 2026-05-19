@@ -20,7 +20,6 @@ public class LoginFrame extends JFrame {
     private static final Color COLOR_FONDO       = new Color(15, 23, 42);
     private static final Color COLOR_PANEL       = new Color(30, 41, 59);
     private static final Color COLOR_ACENTO      = new Color(56, 189, 248);
-    private static final Color COLOR_ACENTO2     = new Color(99, 102, 241);
     private static final Color COLOR_TEXTO       = new Color(226, 232, 240);
     private static final Color COLOR_SUBTEXTO    = new Color(148, 163, 184);
     private static final Color COLOR_CAMPO       = new Color(51, 65, 85);
@@ -313,7 +312,7 @@ public class LoginFrame extends JFrame {
     }
 
     /**
-     * Crea el botón de login con efecto hover y estilo personalizado.
+     * Crea el botón de login con efecto hover (al pasar el raton por encima cambia el estilo) y estilo personalizado.
      * 
      * @return Botón de inicio de sesión
      */
@@ -348,13 +347,11 @@ public class LoginFrame extends JFrame {
 
     /**
      * Comprueba las credenciales del usuario contra la base de datos.
-     * Hace una consulta JOIN con la tabla rol_usuario para saber qué perfil tiene.
+     * Hace una consulta para saber qué perfil tiene.
      * 
-     * Si el usuario es ADMINISTRADOR → abre AdminFrame
-     * Si es PROFESOR → abre ProfesorFrame (pendiente de implementar en el código original)
+     * Si el usuario es ADMINISTRADOR abre AdminFrame
+     * Si es PROFESOR  abre ProfesorFrame 
      * 
-     * NOTA IMPORTANTE: En un entorno real, las contraseñas deberían estar hasheadas con BCrypt.
-     * Aquí las comparo directamente porque es un proyecto académico.
      */
     private void autenticar() {
         String usuario    = txtUsuario.getText().trim();
@@ -384,7 +381,7 @@ public class LoginFrame extends JFrame {
                  PreparedStatement ps = con.prepareStatement(sql)) {
 
                 ps.setString(1, usuario);
-                ps.setString(2, contrasena); // En producción usar BCrypt
+                ps.setString(2, contrasena); 
 
                 ResultSet rs = ps.executeQuery();
 
@@ -403,8 +400,7 @@ public class LoginFrame extends JFrame {
                             if ("ADMINISTRADOR".equals(rol)) {
                                 new AdminFrame(nombre, idUsr).setVisible(true);
                             } else {
-                                // Aquí iría el ProfesorFrame cuando esté implementado
-                                // new ProfesorFrame(nombre, idUsr).setVisible(true);
+                                 new ProfesorFrame(usuario).setVisible(true);
                                 JOptionPane.showMessageDialog(null, 
                                     "Perfil PROFESOR - Pendiente de implementación", 
                                     "Info", JOptionPane.INFORMATION_MESSAGE);
