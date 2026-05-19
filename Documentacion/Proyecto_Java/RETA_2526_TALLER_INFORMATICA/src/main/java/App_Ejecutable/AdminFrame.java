@@ -11,41 +11,66 @@ import java.util.Vector;
 
 /**
  * Ventana principal del perfil Administrador.
+ *
+ * Esta clase representa el panel de control completo para el rol de administrador
+ * dentro de la aplicación de gestión del taller informatico
+ * y organiza toda la interfaz.
+ *
+ * Todas las operaciones de lectura y escritura se realizan contra la base de
+ * datos MySQL.
  * @author David Gómez
  * @version 3.0
  */
 public class AdminFrame extends JFrame {
 
-    // ── Paleta ─────────────────────────────────────────────────────────
+
+    // Definimos todos los colores aquí arriba para cambiarlos fácilmente
+    // sin tener que buscarlos por todo el código
     private static final Color COLOR_FONDO      = new Color(15, 23, 42);
     private static final Color COLOR_SIDEBAR    = new Color(23, 33, 52);
     private static final Color COLOR_PANEL      = new Color(30, 41, 59);
-    private static final Color COLOR_ACENTO     = new Color(56, 189, 248);
-    private static final Color COLOR_ACENTO2    = new Color(99, 102, 241);
-    private static final Color COLOR_PELIGRO    = new Color(248, 113, 113);
-    private static final Color COLOR_OK         = new Color(74, 222, 128);
+    private static final Color COLOR_ACENTO     = new Color(56, 189, 248);   // azul claro
+    private static final Color COLOR_ACENTO2    = new Color(99, 102, 241);   // violeta
+    private static final Color COLOR_PELIGRO    = new Color(248, 113, 113);  // rojo — para borrar/baja
+    private static final Color COLOR_OK         = new Color(74, 222, 128);   // verde — para guardar/alta
     private static final Color COLOR_TEXTO      = new Color(226, 232, 240);
-    private static final Color COLOR_SUBTEXTO   = new Color(108, 113, 122);
+    private static final Color COLOR_SUBTEXTO   = new Color(108, 113, 122);  // gris para etiquetas secundarias
     private static final Color COLOR_BORDE      = new Color(51, 65, 85);
     private static final Color COLOR_FILA_PAR   = new Color(30, 41, 59);
     private static final Color COLOR_FILA_IMPAR = new Color(38, 51, 73);
-    private static final Color COLOR_SELECCION  = new Color(56, 189, 248, 60);
+    private static final Color COLOR_SELECCION  = new Color(56, 189, 248, 60); // semitransparente
 
-    // Columnas de la tabla de inventario
+    // Columnas de la tabla de inventario — el orden aquí debe coincidir
+    // con el orden en que la consulta SQL devuelve los campos
     private static final String[] COLUMNAS = {
         "ID", "Nombre", "Categoría", "Estado", "Cantidad", "Armario", "Balda"
     };
 
-    // ── Componentes ────────────────────────────────────────────────────
+
+    /** Contenedor central que alterna */
     private JPanel           contenidoCentral;
+    /** Gestor de vistas del panel central. */
     private CardLayout       cardLayout;
+    /** Tabla principal del inventario. */
     private JTable           tablaInventario;
+    /** Modelo de datos */
     private DefaultTableModel modeloTabla;
+    /** Etiqueta de la barra inferior que muestra el estado de la conexión. */
     private JLabel           lblEstado;
+    /** Nombre de usuario con el que se inició sesión. */
     private final String     usuarioActual;
-    private final int        idUsuarioActual; // id_usuario en BD
+    /** ID de base de datos del usuario actual ,se guarda por si hace falta en consultas futuras. */
+    private final int        idUsuarioActual; 
 
 
+    /**
+     * Construye el frame del administrador y lo deja listo para mostrarse.
+     *
+     * Configura el tamaño, posición y estructura general de la ventana
+     *
+     * @param usuario   nombre visible del administrador que inició sesión
+     * @param idUsuario identificador numérico del usuario en la tabla {@code usuario} de la BD
+     */
     public AdminFrame(String usuario, int idUsuario) {
         this.usuarioActual   = usuario;
         this.idUsuarioActual = idUsuario;
@@ -53,19 +78,33 @@ public class AdminFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1150, 720);
         setMinimumSize(new Dimension(900, 600));
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(null); // centrar en pantalla
         getContentPane().setBackground(COLOR_FONDO);
         setLayout(new BorderLayout(0, 0));
 
+        // Montamos la estructura principal: sidebar a la izquierda,
+        // contenido al centro y barra de estado abajo
         add(crearSidebar(),          BorderLayout.WEST);
         add(crearContenidoCentral(), BorderLayout.CENTER);
         add(crearBarraEstado(),      BorderLayout.SOUTH);
 
-        mostrarPanel("inventario");
+        mostrarPanel("inventario"); // panel de inicio al arrancar
     }
 
 
+    /**
+     * Crea y devuelve el panel lateral de navegación 
+     *
+     * El sidebar contiene la cabecera con el nombre y rol del usuario,
+     * los ítems de menú agrupados por secciones  y
+     * el botón de cierre de sesión en la parte inferior.
+     *
+     * El fondo se pinta manualmente sobreescribiendo 
+     * para poder añadir la línea separadora derecha con un píxel de grosor.
+     */
     private JPanel crearSidebar() {
+        // Sobreescribimos paintComponent para pintar el fondo oscuro del sidebar
+        // y el borde derecho de 1px que lo separa del contenido central
         JPanel sidebar = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -73,7 +112,7 @@ public class AdminFrame extends JFrame {
                 g2.setColor(COLOR_SIDEBAR);
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.setColor(COLOR_BORDE);
-                g2.fillRect(getWidth() - 1, 0, 1, getHeight());
+                g2.fillRect(getWidth() - 1, 0, 1, getHeight()); // línea de 1px a la derecha
                 g2.dispose();
             }
         };
@@ -81,6 +120,7 @@ public class AdminFrame extends JFrame {
         sidebar.setPreferredSize(new Dimension(220, 0));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
+        //cabecera
         JPanel cab = new JPanel();
         cab.setOpaque(false);
         cab.setLayout(new BoxLayout(cab, BoxLayout.Y_AXIS));
@@ -103,6 +143,7 @@ public class AdminFrame extends JFrame {
         sidebar.add(cab);
         sidebar.add(crearSeparadorSidebar());
 
+        // Sección INVENTARIO
         sidebar.add(crearSeccion("INVENTARIO"));
         sidebar.add(crearItemMenu("📋", "Ver Inventario",      "inventario"));
         sidebar.add(crearItemMenu("➕", "Alta de Material",    "alta"));
@@ -111,14 +152,16 @@ public class AdminFrame extends JFrame {
         sidebar.add(Box.createVerticalStrut(8));
         sidebar.add(crearSeparadorSidebar());
 
+        // Sección GESTIÓN
         sidebar.add(crearSeccion("GESTIÓN"));
         sidebar.add(crearItemMenu("📦", "Préstamos",          "prestamos"));
         sidebar.add(crearItemMenu("👤", "Usuarios",           "usuarios"));
         sidebar.add(crearItemMenu("📊", "Historial",          "historial"));
         sidebar.add(crearItemMenu("📤", "Importar / Exportar","importar"));
-        sidebar.add(Box.createVerticalGlue());
+        sidebar.add(Box.createVerticalGlue()); // empuja el botón de logout hacia abajo
         sidebar.add(crearSeparadorSidebar());
 
+        // Botón de cierre de sesión , lo he puesto abajo en la izquierda para que sea visible y a la vez no moleste
         JPanel panelLogout = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 12));
         panelLogout.setOpaque(false);
         panelLogout.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
@@ -136,6 +179,11 @@ public class AdminFrame extends JFrame {
         return sidebar;
     }
 
+    /**
+     * Crea una línea separadora horizontal para usar entre secciones
+     *
+     * @return el color de borde de la paleta
+     */
     private JSeparator crearSeparadorSidebar() {
         JSeparator sep = new JSeparator();
         sep.setForeground(COLOR_BORDE);
@@ -143,6 +191,16 @@ public class AdminFrame extends JFrame {
         return sep;
     }
 
+    /**
+     * Crea una etiqueta de sección
+     *
+     * Se usa para encabezar grupos de ítems de menú, por ejemplo
+     * "INVENTARIO" o "GESTIÓN". El texto se muestra en mayúsculas,
+     * tamaño pequeño y con el color de subtexto para no competir
+     * visualmente con los ítems.
+     *
+     * @param texto texto a mostrar como título de sección
+     */
     private JLabel crearSeccion(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
@@ -152,7 +210,18 @@ public class AdminFrame extends JFrame {
         return lbl;
     }
 
+    /**
+     * Crea un ítem de menú interactivo para el sidebar.
+     *
+     * Cada ítem es un jpanel con efecto hover personalizado-> esto es que al pasar el raton por encima canbia su visualizacion 
+     *
+     * @param icono   emoji o carácter unicode que actúa como icono
+     * @param texto   texto descriptivo de la opción
+     * @param panelId identificador de la vista que se mostrará al pulsar
+     * @return el panel que representa el ítem de menú
+     */
     private JPanel crearItemMenu(String icono, String texto, String panelId) {
+        // Panel con hover personalizado; usamos una clase anónima-> esto es pq es mas facil que crear componentes 
         JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 10)) {
             private boolean hover = false;
             {
@@ -166,6 +235,7 @@ public class AdminFrame extends JFrame {
             }
             @Override protected void paintComponent(Graphics g) {
                 if (hover) {
+                    // Fondo semitransparente + barra azul 
                     g.setColor(new Color(56, 189, 248, 20));
                     g.fillRect(0, 0, getWidth(), getHeight());
                     g.setColor(COLOR_ACENTO);
@@ -185,12 +255,23 @@ public class AdminFrame extends JFrame {
         return item;
     }
 
-    // ── Contenido central ──────────────────────────────────────────────
+
+
+    /**
+     * Crea el panel central que alberga todas las vistas de la aplicacion.
+     *
+     * Usa un  CardLayout para poder cambiar de vista de forma
+     * instantánea sin recargar nada. Cada vista se identifica con una
+     * clave de texto
+     *
+     * @return el jpanelcon el CardLayout ya configurado
+     */
     private JPanel crearContenidoCentral() {
         cardLayout      = new CardLayout();
         contenidoCentral = new JPanel(cardLayout);
         contenidoCentral.setOpaque(false);
 
+        // Registramos cada vista con su clave — el orden no importa
         contenidoCentral.add(crearPanelInventario(), "inventario");
         contenidoCentral.add(crearPanelAlta(),       "alta");
         contenidoCentral.add(crearPanelModificar(),  "modificar");
@@ -203,12 +284,29 @@ public class AdminFrame extends JFrame {
         return contenidoCentral;
     }
 
+    /**
+     * Muestra la vista indicada en el área central.
+     *
+     * @param id clave de la vista a mostrar 
+     */
     private void mostrarPanel(String id) { cardLayout.show(contenidoCentral, id); }
-    
-    
-    private void cargarInventario(String nombre, String categoria, String estado) {
-        modeloTabla.setRowCount(0);
 
+    /**
+     * Consulta el inventario en la BD 
+     *
+     * La consulta se construye dinámicamente: solo se añaden cláusulas
+     * para los filtros que no sean nulos ni vacíos. Si todos
+     * son nulos, se carga el inventario completo.
+     * 
+     * @param nombre    texto a buscar en el nombre del material 
+     * @param categoria nombre exacto de la categoría
+     * @param estado    nombre exacto del estado
+     */
+    private void cargarInventario(String nombre, String categoria, String estado) {
+        modeloTabla.setRowCount(0); // limpiamos la tabla antes de rellenarla
+
+        // Construimos la query base con los JOINs necesarios para mostrar los nombres en lugar de los IDs foráneos
+        
         StringBuilder sql = new StringBuilder(
             "SELECT m.id_material, m.nombre, c.nombre AS categoria,c.descripcion, " +
             "       e.nombre AS estado, m.cantidad, " +
@@ -218,7 +316,8 @@ public class AdminFrame extends JFrame {
             "JOIN estado_elemento e ON e.id            = m.id_estado " +
             "JOIN ubicacion       u ON u.id_ubicacion  = m.id_ubicacion " +
             "WHERE 1=1");
-
+        
+        
         if (nombre    != null && !nombre.isEmpty())
             sql.append(" AND LOWER(m.nombre) LIKE ?");
         if (categoria != null && !categoria.equals("Todos"))
@@ -230,6 +329,7 @@ public class AdminFrame extends JFrame {
         try (Connection con = ConexionBD.getInstance().getConn();
              PreparedStatement ps = con.prepareStatement(sql.toString())) {
 
+            // Asignamos los parámetros en el mismo orden en que se añadieron
             int idx = 1;
             if (nombre    != null && !nombre.isEmpty())
                 ps.setString(idx++, "%" + nombre.toLowerCase() + "%");
@@ -241,6 +341,7 @@ public class AdminFrame extends JFrame {
             ResultSet rs = ps.executeQuery();
             int total = 0;
             while (rs.next()) {
+                // Formateamos el ID con ceros a la izquierda para que ordene bien visualmente
                 modeloTabla.addRow(new Object[]{
                     String.format("%03d", rs.getInt("id_material")),
                     rs.getString("nombre"),
@@ -263,16 +364,25 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Crea el panel de consulta del inventario con barra de búsqueda/filtros y
+     * los botones de acción rápida
+     *
+     * La tabla se carga automáticamente al construir el panel 
+     * 
+     * @return el panel "inventario" listo
+     */
     private JPanel crearPanelInventario() {
         JPanel panel = crearPanelBase("📋  Inventario del Taller");
 
+        // Barra superior de busqueda y filtros
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         toolbar.setOpaque(false);
 
         JTextField busqueda = new JTextField(20);
         estilizarCampo(busqueda);
 
-        // Categorías desde la BD (cargadas dinámicamente)
+        // Categorias desde la BD
         JComboBox<String> comboCat   = new JComboBox<>();
         JComboBox<String> comboEst   = new JComboBox<>();
         estilizarCombo(comboCat);
@@ -283,6 +393,7 @@ public class AdminFrame extends JFrame {
         JButton btnBuscar  = crearBoton("Buscar",       COLOR_ACENTO2);
         JButton btnRefresh = crearBoton("↻ Actualizar", COLOR_PANEL);
 
+        // Al buscar aplicamos los tres filtros, al actualizar limpiamos todo
         btnBuscar.addActionListener(e ->
             cargarInventario(busqueda.getText().trim(),
                              comboCat.getSelectedItem().toString(),
@@ -291,7 +402,7 @@ public class AdminFrame extends JFrame {
             busqueda.setText("");
             comboCat.setSelectedIndex(0);
             comboEst.setSelectedIndex(0);
-            cargarInventario(null, null, null);
+            cargarInventario(null, null, null); // recarga sin filtros
         });
 
         toolbar.add(new JLabel("🔍") {{ setForeground(COLOR_SUBTEXTO); }});
@@ -303,6 +414,7 @@ public class AdminFrame extends JFrame {
         toolbar.add(btnBuscar);
         toolbar.add(btnRefresh);
 
+        // Modelo con celdas no editables — el usuario solo puede consultar
         modeloTabla     = new DefaultTableModel(COLUMNAS, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -313,12 +425,14 @@ public class AdminFrame extends JFrame {
         scroll.getViewport().setBackground(COLOR_FONDO);
         scroll.setBorder(new LineBorder(COLOR_BORDE, 1, true));
 
+        // Botones de accion rápida en la parte inferior del panel
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
         JButton btnAnadir   = crearBoton("➕ Añadir",   COLOR_OK);
         JButton btnEditar   = crearBoton("✏️ Editar",  COLOR_ACENTO);
         JButton btnEliminar = crearBoton("🗑 Eliminar", COLOR_PELIGRO);
 
+        // Añadir y editar
         btnAnadir.addActionListener(e -> mostrarPanel("alta"));
         btnEditar.addActionListener(e -> mostrarPanel("modificar"));
         btnEliminar.addActionListener(e -> {
@@ -327,6 +441,7 @@ public class AdminFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Selecciona un elemento primero.",
                     "Sin selección", JOptionPane.INFORMATION_MESSAGE); return;
             }
+            // Obtenemos el ID de la primera columna para pasarlo a la baja
             String id = modeloTabla.getValueAt(fila, 0).toString();
             darDeBajaMaterial(Integer.parseInt(id));
         });
@@ -339,11 +454,22 @@ public class AdminFrame extends JFrame {
         panel.add(scroll,   BorderLayout.CENTER);
         panel.add(acciones, BorderLayout.SOUTH);
 
+        // Cargamos los datos al mostrar la ventana
         SwingUtilities.invokeLater(() -> cargarInventario(null, null, null));
         return panel;
     }
 
 
+    /**
+     * Crea el formulario de alta de nuevo material.
+     *
+     * El formulario incluye campos de texto para nombre, descripción,
+     * cantidad y observaciones, y desplegables para categoría, estado y
+     * ubicación (todos cargados desde la BD en tiempo real). Al confirmar,
+     * se validan los campos obligatorios .
+     *
+     * @return el panel "alta" listo
+     */
     private JPanel crearPanelAlta() {
         JPanel panel = crearPanelBase("➕  Alta de Material");
 
@@ -353,20 +479,22 @@ public class AdminFrame extends JFrame {
         JTextField tfObs      = campoTexto();
 
         // Combos con datos reales de la BD
-        JComboBox<String> cbCat  = new JComboBox<>();
-        JComboBox<String> cbEst  = new JComboBox<>();
+        JComboBox<String> cbCat  = new JComboBox<>();//categorias
+        JComboBox<String> cbEst  = new JComboBox<>();//estados
         JComboBox<String> cbArm  = new JComboBox<>(); // ubicaciones disponibles
         estilizarCombo(cbCat); estilizarCombo(cbEst); estilizarCombo(cbArm);
         cargarComboCategorias(cbCat);
         cargarComboEstados(cbEst);
         cargarComboUbicaciones(cbArm);
 
+        // Formulario en dos columnas 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 12, 12);
 
+        // Array de pares facilita añadir o reordenar campos
         Object[][] filas = {
             {"Nombre del elemento", tfNombre},  {"Descripción",   tfDesc},
             {"Categoría",           cbCat},      {"Estado",        cbEst},
@@ -394,6 +522,7 @@ public class AdminFrame extends JFrame {
         btnRegistrar.addActionListener(e -> {
             String nombre   = tfNombre.getText().trim();
             String cantidad = tfCantidad.getText().trim();
+            // Validación básica: nombre y cantidad son los únicos campos obligatorios
             if (nombre.isEmpty() || cantidad.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                     "Nombre y cantidad son obligatorios.", "Campos requeridos",
@@ -401,10 +530,12 @@ public class AdminFrame extends JFrame {
             }
             try {
                 int cant = Integer.parseInt(cantidad);
+                // Resolvemos los IDs foráneos a partir de los nombres seleccionados en los combos
                 int idCat = obtenerIdPorNombre("categoria",      "id_categoria", cbCat.getSelectedItem().toString());
                 int idEst = obtenerIdPorNombre("estado_elemento","id",           cbEst.getSelectedItem().toString());
                 int idUbic= obtenerIdUbicacion(cbArm.getSelectedItem().toString());
                 insertarMaterial(nombre, tfDesc.getText(), cant, idCat, idEst, idUbic, tfObs.getText());
+                // Limpiamos el formulario para que quede listo para otro alta
                 tfNombre.setText(""); tfDesc.setText(""); tfCantidad.setText(""); tfObs.setText("");
                 cbCat.setSelectedIndex(0); cbEst.setSelectedIndex(0); cbArm.setSelectedIndex(0);
                 mostrarPanel("inventario");
@@ -427,6 +558,21 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Inserta un nuevo material en la tabla de la BD.
+     *
+     * La fecha de alta se establece automáticamente 
+     * en la propia consulta SQL para evitar discrepancias de zona horaria
+     * entre el cliente y el servidor.
+     *
+     * @param nombre   nombre del material
+     * @param desc     descripción del material (puede estar vacía)
+     * @param cantidad cantidad inicial en almacén
+     * @param idCat    FK a la tabla  categoria
+     * @param idEst    FK a la tabla estado_elemento
+     * @param idUbic   FK a la tabla ubicacion
+     * @param obs      observaciones adicionales (puede estar vacío)
+     */
     private void insertarMaterial(String nombre, String desc, int cantidad,
                                   int idCat, int idEst, int idUbic, String obs) {
         String sql =
@@ -445,7 +591,7 @@ public class AdminFrame extends JFrame {
             ps.executeUpdate();
             JOptionPane.showMessageDialog(this, "Elemento registrado correctamente.",
                 "Alta exitosa", JOptionPane.INFORMATION_MESSAGE);
-            cargarInventario(null, null, null);
+            cargarInventario(null, null, null); // refrescamos la tabla
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
                 "Error al insertar en la BD:\n" + ex.getMessage(),
@@ -454,6 +600,18 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Crea el panel de modificación de material existente.
+     *usuario escribe el ID del elemento, pulsa "Buscar"
+     * y los campos se rellenan con los datos actuales. Entonces puede editar
+     * y guardar con "Guardar cambios".
+     *
+     * El ID real del elemento se guarda en un array de un elemento
+     * para que la lambda del boton Guardar pueda
+     * acceder a el sin necesidad de declararlo 
+     *
+     * @return el panel modificar listo
+     */
     private JPanel crearPanelModificar() {
         JPanel panel = crearPanelBase("✏️  Modificar Material");
 
@@ -473,6 +631,7 @@ public class AdminFrame extends JFrame {
         cargarComboEstados(cbEst);
         cargarComboUbicaciones(cbArm);
 
+        //array de 1 elemento para que la lambda pueda modificarlo
         final int[] idReal = {-1};
 
         JButton btnBuscar = crearBoton("Buscar", COLOR_ACENTO2);
@@ -481,6 +640,7 @@ public class AdminFrame extends JFrame {
             if (idStr.isEmpty()) return;
             try {
                 int id = Integer.parseInt(idStr);
+                // Traemos todos los campos del material más los nombres de las FK
                 String sql =
                     "SELECT m.*, c.nombre AS cat_nombre, e.nombre AS est_nombre, " +
                     "       CONCAT(IFNULL(u.codigo_armario,''), ' - ', IFNULL(u.codigo_balda,'')) AS ubic_label " +
@@ -499,6 +659,7 @@ public class AdminFrame extends JFrame {
                         tfDesc.setText(rs.getString("descripcion")    != null ? rs.getString("descripcion")    : "");
                         tfCantidad.setText(String.valueOf(rs.getInt("cantidad")));
                         tfObs.setText(rs.getString("observaciones")   != null ? rs.getString("observaciones")  : "");
+                        // Seleccionamos el ítem correcto en cada combo
                         seleccionarEnCombo(cbCat, rs.getString("cat_nombre"));
                         seleccionarEnCombo(cbEst, rs.getString("est_nombre"));
                         seleccionarEnCombo(cbArm, rs.getString("ubic_label"));
@@ -515,12 +676,14 @@ public class AdminFrame extends JFrame {
             }
         });
 
+        // Panel de búsqueda por ID
         JPanel busq = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         busq.setOpaque(false);
         busq.add(new JLabel("Buscar por ID:") {{ setForeground(COLOR_SUBTEXTO); setFont(new Font("Segoe UI", Font.PLAIN, 13)); }});
         busq.add(tfId);
         busq.add(btnBuscar);
 
+        // Formulario de edición (misma estructura que el de alta)
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -552,6 +715,7 @@ public class AdminFrame extends JFrame {
 
         btnCancelar.addActionListener(e -> mostrarPanel("inventario"));
         btnGuardar.addActionListener(e -> {
+            // No dejamos guardar si no se ha buscado primero un elemento
             if (idReal[0] < 0) {
                 JOptionPane.showMessageDialog(this, "Busca un elemento primero.", "Sin selección", JOptionPane.WARNING_MESSAGE); return;
             }
@@ -584,6 +748,18 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Actualiza en la BD los datos de un material ya existente.
+     *
+     * @param id      identificador del material a actualizar
+     * @param nombre  nuevo nombre
+     * @param desc    nueva descripción
+     * @param cantidad nueva cantidad
+     * @param idCat   nueva FK de categoría
+     * @param idEst   nueva FK de estado
+     * @param idUbic  nueva FK de ubicación
+     * @param obs     nuevas observaciones
+     */
     private void actualizarMaterial(int id, String nombre, String desc, int cantidad,
                                     int idCat, int idEst, int idUbic, String obs) {
         String sql =
@@ -603,7 +779,7 @@ public class AdminFrame extends JFrame {
             ps.executeUpdate();
             JOptionPane.showMessageDialog(this, "Elemento actualizado correctamente.",
                 "Modificación exitosa", JOptionPane.INFORMATION_MESSAGE);
-            cargarInventario(null, null, null);
+            cargarInventario(null, null, null); // refrescamos la tabla principal
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
                 "Error al actualizar en la BD:\n" + ex.getMessage(),
@@ -612,6 +788,16 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Crea el panel de baja de material.
+     *
+     * El administrador introduce el ID, visualiza los datos del elemento
+     * para confirmar que es el correcto y a continuación pulsa "Confirmar baja".
+     * El aviso amarillo recuerda que el estado cambia a BAJA pero el registro no se elimina de la base de datos
+     * (LO HE HECHO ASI POR QUE ME PARECE LA MANERA MAS COHERENTE Y QUE MAS ME GUSTABA)
+     *
+     * @return el panel baja listo 
+     */
     private JPanel crearPanelBaja() {
         JPanel panel = crearPanelBase("🗑  Baja de Material");
 
@@ -623,6 +809,7 @@ public class AdminFrame extends JFrame {
         JTextField tfId = new JTextField(12);
         estilizarCampo(tfId);
 
+        //mostrar la info del elemento encontrado
         JLabel[] lblsVal = new JLabel[5];
         String[] etiq    = {"Nombre:", "Categoría:", "Estado:", "Cantidad:", "Ubicación:"};
         JPanel infoGrid  = new JPanel(new GridLayout(5, 2, 8, 8));
@@ -633,7 +820,7 @@ public class AdminFrame extends JFrame {
             infoGrid.add(e); infoGrid.add(lblsVal[i]);
         }
 
-        final int[] idReal = {-1};
+        final int[] idReal = {-1}; // guarda el ID mientras el usuario decide si confirmar
 
         JButton btnBuscarBaja = crearBoton("Buscar", COLOR_ACENTO2);
         btnBuscarBaja.addActionListener(e -> {
@@ -663,7 +850,7 @@ public class AdminFrame extends JFrame {
                                          + " · Balda " + rs.getString("codigo_balda"));
                     } else {
                         idReal[0] = -1;
-                        for (JLabel l : lblsVal) l.setText("—");
+                        for (JLabel l : lblsVal) l.setText("—"); // reseteamos la vista previa
                         JOptionPane.showMessageDialog(this, "No se encontró el elemento con ID " + id,
                             "No encontrado", JOptionPane.INFORMATION_MESSAGE);
                     }
@@ -686,6 +873,7 @@ public class AdminFrame extends JFrame {
         JPanel preview = crearCard("Vista previa del elemento a dar de baja");
         preview.add(infoGrid, BorderLayout.CENTER);
 
+        // Aviso destacado en amarillo para que no pase desapercibido
         JPanel aviso = new JPanel(new FlowLayout(FlowLayout.LEFT));
         aviso.setOpaque(false);
         JLabel warn = new JLabel("⚠  El estado cambiará a BAJA y quedará registrado en el historial.");
@@ -709,13 +897,14 @@ public class AdminFrame extends JFrame {
             if (idReal[0] < 0) {
                 JOptionPane.showMessageDialog(this, "Busca un elemento primero.", "Sin selección", JOptionPane.WARNING_MESSAGE); return;
             }
+            // Segunda confirmación antes de realizar la baja
             int confirm = JOptionPane.showConfirmDialog(this,
                 "¿Confirmas la baja de: " + lblsVal[0].getText() + "?\nEl estado cambiará a BAJA.",
                 "Confirmar baja", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                 darDeBajaMaterial(idReal[0]);
                 idReal[0] = -1;
-                for (JLabel l : lblsVal) l.setText("—");
+                for (JLabel l : lblsVal) l.setText("—"); // limpiamos la vista previa
                 tfId.setText("");
                 mostrarPanel("inventario");
             }
@@ -729,10 +918,16 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Cambia el estado del material a BAJA
-     * No elimina físicamente el registro
+     * Cambia el estado del material a BAJA en la BD.
+     *
+     * No elimina físicamente el registro: solo actualiza el campo
+     *  id_estado al valor correspondiente a "BAJA" en la tabla
+     * estado_elemento. Esto permite mantener el historial completo.
+     *
+     * @param id identificador del material a dar de baja
      */
     private void darDeBajaMaterial(int id) {
+        // Usamos una subconsulta para no depender de un ID concreto del estado "BAJA"
         String sql = "UPDATE material SET id_estado = " +
                      "(SELECT id FROM estado_elemento WHERE nombre='BAJA') " +
                      "WHERE id_material = ?";
@@ -742,7 +937,7 @@ public class AdminFrame extends JFrame {
             ps.executeUpdate();
             JOptionPane.showMessageDialog(this, "Elemento dado de baja correctamente.",
                 "Baja exitosa", JOptionPane.INFORMATION_MESSAGE);
-            cargarInventario(null, null, null);
+            cargarInventario(null, null, null); // refrescamos para que desaparezca o cambie de estado
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
                 "Error al dar de baja:\n" + ex.getMessage(),
@@ -751,6 +946,16 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Crea el panel de gestión de préstamos.
+     *
+     * Muestra una tabla con todos los préstamos (activos y devueltos)
+     * y ofrece botones para crear nuevos préstamos y registrar devoluciones.
+     * Al registrar una devolución se actualiza la fecha en la BD y el material
+     * vuelve a estar disponible.
+     *
+     * @return el panel "prestamos" listo para añadirse al CardLayout
+     */
     private JPanel crearPanelPrestamos() {
         JPanel panel = crearPanelBase("📦  Gestión de Préstamos");
 
@@ -793,6 +998,15 @@ public class AdminFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Carga o recarga todos los préstamos desde la BD en el modelo indicado.
+     *
+     * <p>El estado del préstamo se calcula dinámicamente: si
+     * {@code fecha_devolucion} es NULL, el préstamo está "ACTIVO";
+     * en caso contrario, "DEVUELTO".</p>
+     *
+     * @param modelo el {@link DefaultTableModel} al que se añaden las filas
+     */
     private void cargarPrestamos(DefaultTableModel modelo) {
         modelo.setRowCount(0);
         String sql =
@@ -802,7 +1016,7 @@ public class AdminFrame extends JFrame {
             "FROM prestamo p " +
             "JOIN material m ON m.id_material = p.id_material " +
             "JOIN usuario  u ON u.id_usuario  = p.id_usuario " +
-            "ORDER BY p.id_prestamo DESC";
+            "ORDER BY p.id_prestamo DESC"; // los más recientes primero
         try (Connection con = ConexionBD.getInstance().getConn();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -823,6 +1037,15 @@ public class AdminFrame extends JFrame {
         }
     }
 
+    /**
+     * Abre un diálogo modal para crear un nuevo préstamo.
+     *
+     * <p>Solicita el ID del material y el ID del usuario. La fecha de
+     * préstamo se asigna automáticamente a la fecha actual del servidor
+     * con {@code CURDATE()}.</p>
+     *
+     * @param modeloP modelo de la tabla de préstamos para refrescarlo tras la inserción
+     */
     private void dialogoNuevoPrestamo(DefaultTableModel modeloP) {
         JTextField tfIdMat  = new JTextField(8);
         JTextField tfIdUsr  = new JTextField(8);
@@ -852,7 +1075,7 @@ public class AdminFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Préstamo registrado. El estado del material cambiará a PRESTADO.",
                     "Préstamo creado", JOptionPane.INFORMATION_MESSAGE);
                 cargarPrestamos(modeloP);
-                cargarInventario(null, null, null);
+                cargarInventario(null, null, null); // el estado del material habrá cambiado
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Los IDs deben ser números enteros.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
@@ -862,12 +1085,23 @@ public class AdminFrame extends JFrame {
         }
     }
 
+    /**
+     * Registra la devolución de un préstamo activo estableciendo la fecha actual.
+     *
+     * <p>Solo actualiza filas donde {@code fecha_devolucion IS NULL} para
+     * evitar sobreescribir devoluciones ya registradas. Si el {@code UPDATE}
+     * no afecta a ninguna fila, informa al usuario.</p>
+     *
+     * @param idPrestamo identificador del préstamo a marcar como devuelto
+     * @param modeloP    modelo de la tabla para refrescarlo tras el cambio
+     */
     private void registrarDevolucion(int idPrestamo, DefaultTableModel modeloP) {
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Registrar la devolución del préstamo #" + idPrestamo + "?",
             "Confirmar devolución", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
+        // La condición "AND fecha_devolucion IS NULL" protege de dobles devoluciones
         String sql = "UPDATE prestamo SET fecha_devolucion = CURDATE() WHERE id_prestamo = ? AND fecha_devolucion IS NULL";
         try (Connection con = ConexionBD.getInstance().getConn();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -889,6 +1123,16 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Crea el panel de gestión de usuarios.
+     *
+     * <p>Lista todos los usuarios del sistema con su ID, nombre y rol.
+     * Permite crear nuevos usuarios, eliminarlos y refrescar la tabla.
+     * El botón "Editar" está añadido visualmente pero su lógica queda
+     * pendiente de implementación.</p>
+     *
+     * @return el panel "usuarios" listo para añadirse al CardLayout
+     */
     private JPanel crearPanelUsuarios() {
         JPanel panel = crearPanelBase("👤  Gestión de Usuarios");
 
@@ -931,6 +1175,11 @@ public class AdminFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Carga todos los usuarios de la BD en el modelo indicado.
+     *
+     * @param modelo el {@link DefaultTableModel} al que se añaden las filas
+     */
     private void cargarUsuarios(DefaultTableModel modelo) {
         modelo.setRowCount(0);
         String sql =
@@ -955,6 +1204,15 @@ public class AdminFrame extends JFrame {
         }
     }
 
+    /**
+     * Abre un diálogo modal para dar de alta a un nuevo usuario.
+     *
+     * <p>Solicita nombre, contraseña y rol. La contraseña se almacena
+     * tal cual en la BD (sin hash); esto es una limitación conocida
+     * de la versión actual.</p>
+     *
+     * @param modeloU modelo de usuarios para refrescarlo tras la inserción
+     */
     private void dialogoNuevoUsuario(DefaultTableModel modeloU) {
         JTextField tfNombre = new JTextField(15);
         JTextField tfPass   = new JPasswordField(15);
@@ -991,6 +1249,16 @@ public class AdminFrame extends JFrame {
         }
     }
 
+    /**
+     * Elimina físicamente un usuario de la BD previa confirmación.
+     *
+     * <p>A diferencia de la baja de material, aquí sí se elimina el registro.
+     * Antes de llamar a este método conviene verificar que el usuario no tenga
+     * préstamos activos para evitar problemas de integridad referencial.</p>
+     *
+     * @param id      identificador del usuario a eliminar
+     * @param modeloU modelo de usuarios para refrescarlo tras el borrado
+     */
     private void eliminarUsuario(int id, DefaultTableModel modeloU) {
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Eliminar el usuario con ID " + id + "?", "Confirmar eliminación",
@@ -1008,6 +1276,15 @@ public class AdminFrame extends JFrame {
         }
     }
 
+    /**
+     * Crea el panel del historial de movimientos.
+     *
+     * <p>Muestra los últimos 200 registros de la tabla
+     * {@code historial_movimiento} ordenados por fecha descendente.
+     * El límite de 200 evita cargas lentas en talleres con mucha actividad.</p>
+     *
+     * @return el panel "historial" listo para añadirse al CardLayout
+     */
     private JPanel crearPanelHistorial() {
         JPanel panel = crearPanelBase("📊  Historial de Movimientos");
 
@@ -1035,6 +1312,13 @@ public class AdminFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Carga los movimientos del historial desde la BD en el modelo indicado.
+     *
+     * <p>Se limita a los 200 registros más recientes para mantener el rendimiento.</p>
+     *
+     * @param modelo el {@link DefaultTableModel} al que se añaden las filas
+     */
     private void cargarHistorial(DefaultTableModel modelo) {
         modelo.setRowCount(0);
         String sql =
@@ -1064,6 +1348,16 @@ public class AdminFrame extends JFrame {
         }
     }
 
+    /**
+     * Crea el panel de importación y exportación de datos.
+     *
+     * <p>Divide el espacio en dos tarjetas: una para importar (CSV/XLSX)
+     * y otra para exportar (CSV, Excel, PDF). En esta versión los botones
+     * están creados pero la lógica de importación/exportación real aún
+     * no está implementada.</p>
+     *
+     * @return el panel "importar" listo para añadirse al CardLayout
+     */
     private JPanel crearPanelImportar() {
         JPanel panel = crearPanelBase("📤  Importar / Exportar Datos");
 
@@ -1071,6 +1365,7 @@ public class AdminFrame extends JFrame {
         contenido.setOpaque(false);
         contenido.setBorder(new EmptyBorder(16, 0, 0, 0));
 
+        // Tarjeta de importación
         JPanel pImport = crearCard("📥  Importar datos");
         JPanel impContent = new JPanel();
         impContent.setOpaque(false);
@@ -1088,6 +1383,7 @@ public class AdminFrame extends JFrame {
         impContent.add(btnSelFile); impContent.add(Box.createVerticalStrut(8)); impContent.add(btnImport);
         pImport.add(impContent, BorderLayout.CENTER);
 
+        // Tarjeta de exportación
         JPanel pExport = crearCard("📤  Exportar datos");
         JPanel expContent = new JPanel();
         expContent.setOpaque(false);
@@ -1115,6 +1411,15 @@ public class AdminFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Crea la barra de estado inferior de la ventana.
+     *
+     * <p>A la izquierda muestra el estado de la conexión a la BD
+     * (actualizado por {@link #cargarInventario(String, String, String)})
+     * y a la derecha la fecha actual formateada.</p>
+     *
+     * @return el {@link JPanel} de la barra de estado
+     */
     private JPanel crearBarraEstado() {
         JPanel barra = new JPanel(new BorderLayout());
         barra.setBackground(new Color(10, 16, 30));
@@ -1126,6 +1431,7 @@ public class AdminFrame extends JFrame {
         lblEstado.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblEstado.setForeground(COLOR_SUBTEXTO);
 
+        // Mostramos la fecha del sistema en el lado derecho
         JLabel lblFecha = new JLabel(new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date()));
         lblFecha.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblFecha.setForeground(COLOR_SUBTEXTO);
@@ -1135,6 +1441,16 @@ public class AdminFrame extends JFrame {
         return barra;
     }
 
+    /**
+     * Crea un panel base con título grande para cualquier vista del área central.
+     *
+     * <p>Todos los paneles de contenido usan este método como punto de partida
+     * para garantizar un aspecto uniforme: fondo transparente, márgenes
+     * consistentes y título en la parte superior.</p>
+     *
+     * @param titulo texto que aparece como encabezado de la vista
+     * @return el {@link JPanel} base listo para añadirle el contenido específico
+     */
     private JPanel crearPanelBase(String titulo) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(false);
@@ -1147,6 +1463,17 @@ public class AdminFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Crea una "tarjeta" con fondo redondeado y borde sutil.
+     *
+     * <p>Se usa para agrupar visualmente secciones dentro de un panel,
+     * como la vista previa en la baja o los selectores en importar/exportar.
+     * El fondo y el borde se pintan manualmente para conseguir esquinas
+     * redondeadas sin depender de componentes externos.</p>
+     *
+     * @param titulo texto que aparece como título de la tarjeta
+     * @return el {@link JPanel} con aspecto de tarjeta
+     */
     private JPanel crearCard(String titulo) {
         JPanel card = new JPanel(new BorderLayout(0, 12)) {
             @Override protected void paintComponent(Graphics g) {
@@ -1168,8 +1495,20 @@ public class AdminFrame extends JFrame {
         return card;
     }
 
+    /**
+     * Crea y configura una {@link JTable} con el estilo visual de la aplicación.
+     *
+     * <p>Aplica colores alternados de fila (par/impar), elimina las líneas
+     * verticales, configura el header con fuente pequeña en mayúsculas y
+     * deshabilita el renderizado por defecto para tomar control total del
+     * aspecto visual mediante {@code prepareRenderer}.</p>
+     *
+     * @param modelo el {@link DefaultTableModel} que usará la tabla
+     * @return la {@link JTable} estilizada
+     */
     private JTable crearTabla(DefaultTableModel modelo) {
         JTable tabla = new JTable(modelo) {
+            // Sobreescribimos prepareRenderer para aplicar colores de fila y selección
             @Override public Component prepareRenderer(TableCellRenderer r, int row, int col) {
                 Component c = super.prepareRenderer(r, row, col);
                 c.setBackground(isRowSelected(row) ? COLOR_SELECCION
@@ -1184,7 +1523,7 @@ public class AdminFrame extends JFrame {
         tabla.setRowHeight(34);
         tabla.setGridColor(COLOR_BORDE);
         tabla.setShowHorizontalLines(true);
-        tabla.setShowVerticalLines(false);
+        tabla.setShowVerticalLines(false); // solo horizontales para un look más limpio
         tabla.setSelectionBackground(COLOR_SELECCION);
         tabla.setSelectionForeground(COLOR_TEXTO);
         tabla.setFillsViewportHeight(true);
@@ -1195,28 +1534,59 @@ public class AdminFrame extends JFrame {
         return tabla;
     }
 
+    /**
+     * Crea un {@link JTextField} con el estilo visual estándar de la aplicación.
+     *
+     * @return el campo de texto estilizado
+     */
     private JTextField campoTexto() {
         JTextField tf = new JTextField();
         estilizarCampo(tf);
         return tf;
     }
 
+    /**
+     * Aplica el estilo visual estándar a un {@link JTextField} existente.
+     *
+     * <p>Se extrae como método separado para poder reutilizarlo tanto en
+     * {@link #campoTexto()} como cuando necesitamos estilizar campos
+     * creados fuera de este método (p.ej. los campos de los diálogos).</p>
+     *
+     * @param tf el campo de texto al que se aplica el estilo
+     */
     private void estilizarCampo(JTextField tf) {
         tf.setBackground(new Color(51, 65, 85));
         tf.setForeground(COLOR_TEXTO);
-        tf.setCaretColor(COLOR_ACENTO);
+        tf.setCaretColor(COLOR_ACENTO); // cursor en azul para que se vea bien
         tf.setBorder(new CompoundBorder(
                 new LineBorder(COLOR_BORDE, 1, true),
                 new EmptyBorder(6, 10, 6, 10)));
         tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     }
 
+    /**
+     * Aplica el estilo visual estándar a un {@link JComboBox}.
+     *
+     * @param cb el combo al que se aplica el estilo
+     */
     private void estilizarCombo(JComboBox<?> cb) {
         cb.setBackground(COLOR_PANEL);
         cb.setForeground(COLOR_TEXTO);
         cb.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     }
 
+    /**
+     * Crea un botón con fondo de color personalizado y efecto hover.
+     *
+     * <p>El fondo se pinta manualmente con esquinas redondeadas mediante
+     * {@code paintComponent}. Al pasar el ratón por encima, el color
+     * se aclara ligeramente con {@code Color.brighter()}. El texto
+     * es oscuro si el fondo es claro y viceversa.</p>
+     *
+     * @param texto texto que aparece en el botón
+     * @param fondo color de fondo del botón
+     * @return el {@link JButton} estilizado
+     */
     private JButton crearBoton(String texto, Color fondo) {
         JButton btn = new JButton(texto) {
             private boolean hover = false;
@@ -1233,6 +1603,7 @@ public class AdminFrame extends JFrame {
                 super.paintComponent(g);
             }
         };
+        // Si el fondo es el color de panel (neutro), el texto va en claro; si no, en oscuro
         btn.setForeground(fondo.equals(COLOR_PANEL) ? COLOR_TEXTO : COLOR_FONDO);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setContentAreaFilled(false);
@@ -1243,6 +1614,12 @@ public class AdminFrame extends JFrame {
         return btn;
     }
 
+    /**
+     * Solicita confirmación y vuelve a la pantalla de login cerrando esta ventana.
+     *
+     * <p>Al confirmar se llama a {@code dispose()} para liberar los recursos
+     * del frame actual antes de crear el {@link LoginFrame}.</p>
+     */
     private void cerrarSesion() {
         int resp = JOptionPane.showConfirmDialog(this,
                 "¿Cerrar sesión y volver al login?", "Cerrar sesión",
@@ -1253,7 +1630,14 @@ public class AdminFrame extends JFrame {
         }
     }
 
-// metodos que cargan los combobox, por ejemplo los de insertar nuevo material
+    // metodos que cargan los combobox, por ejemplo los de insertar nuevo material
+
+    /**
+     * Rellena un combo con todas las categorías de la tabla {@code categoria},
+     * sin incluir la opción "Todos". Útil para formularios de alta/modificación.
+     *
+     * @param cb el combo a rellenar
+     */
     private void cargarComboCategorias(JComboBox<String> cb) {
         cb.removeAllItems();
         try (Connection con = ConexionBD.getInstance().getConn();
@@ -1263,9 +1647,15 @@ public class AdminFrame extends JFrame {
         } catch (SQLException ex) { }
     }
 
+    /**
+     * Rellena un combo con todas las categorías más la opción "Todos" al principio.
+     * Útil para los filtros de búsqueda donde queremos poder ver todo.
+     *
+     * @param cb el combo a rellenar
+     */
     private void cargarComboCategoriasConTodos(JComboBox<String> cb) {
         cb.removeAllItems();
-        cb.addItem("Todos");
+        cb.addItem("Todos"); // opción para no filtrar por categoría
         try (Connection con = ConexionBD.getInstance().getConn();
              PreparedStatement ps = con.prepareStatement("SELECT nombre FROM categoria ORDER BY nombre");
              ResultSet rs = ps.executeQuery()) {
@@ -1273,6 +1663,12 @@ public class AdminFrame extends JFrame {
         } catch (SQLException ex) { }
     }
 
+    /**
+     * Rellena un combo con todos los estados disponibles en {@code estado_elemento},
+     * sin incluir la opción "Todos".
+     *
+     * @param cb el combo a rellenar
+     */
     private void cargarComboEstados(JComboBox<String> cb) {
         cb.removeAllItems();
         try (Connection con = ConexionBD.getInstance().getConn();
@@ -1282,9 +1678,15 @@ public class AdminFrame extends JFrame {
         } catch (SQLException ex) {  }
     }
 
+    /**
+     * Rellena un combo con todos los estados más la opción "Todos" al principio.
+     * Útil para los filtros de búsqueda.
+     *
+     * @param cb el combo a rellenar
+     */
     private void cargarComboEstadosConTodos(JComboBox<String> cb) {
         cb.removeAllItems();
-        cb.addItem("Todos");
+        cb.addItem("Todos"); // opción para no filtrar por estado
         try (Connection con = ConexionBD.getInstance().getConn();
              PreparedStatement ps = con.prepareStatement("SELECT nombre FROM estado_elemento ORDER BY id");
              ResultSet rs = ps.executeQuery()) {
@@ -1293,8 +1695,15 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Rellena un combo con todas las ubicaciones de la tabla {@code ubicacion},
+     * mostradas con el formato "armario - balda".
+     *
+     * @param cb el combo a rellenar
+     */
     private void cargarComboUbicaciones(JComboBox<String> cb) {
         cb.removeAllItems();
+        // CONCAT para mostrar "A1 - B2" en lugar de solo el ID
         String sql = "SELECT CONCAT(IFNULL(codigo_armario,''), ' - ', IFNULL(codigo_balda,'')) AS label " +
                      "FROM ubicacion ORDER BY id_ubicacion";
         try (Connection con = ConexionBD.getInstance().getConn();
@@ -1304,6 +1713,18 @@ public class AdminFrame extends JFrame {
         } catch (SQLException ex) { }
     }
 
+    /**
+     * Busca el ID numérico de un registro a partir de su nombre en una tabla genérica.
+     *
+     * <p>Se usa para resolver los IDs de categoría, estado, etc., a partir
+     * del texto seleccionado en un combo antes de insertar o actualizar.</p>
+     *
+     * @param tabla   nombre de la tabla donde buscar
+     * @param campoId nombre de la columna que contiene el ID
+     * @param nombre  valor del campo {@code nombre} a buscar
+     * @return el ID encontrado
+     * @throws SQLException si no se encuentra el nombre en la tabla o hay un error de BD
+     */
     private int obtenerIdPorNombre(String tabla, String campoId, String nombre) throws SQLException {
         String sql = "SELECT " + campoId + " FROM " + tabla + " WHERE nombre = ?";
         try (Connection con = ConexionBD.getInstance().getConn();
@@ -1316,7 +1737,19 @@ public class AdminFrame extends JFrame {
     }
 
 
+    /**
+     * Resuelve el {@code id_ubicacion} a partir del label "armario - balda"
+     * que muestra el combo de ubicaciones.
+     *
+     * <p>Separa el string por " - " para obtener los dos códigos y luego
+     * busca la fila correspondiente en la tabla {@code ubicacion}.</p>
+     *
+     * @param label texto con formato "codigo_armario - codigo_balda"
+     * @return el {@code id_ubicacion} correspondiente
+     * @throws SQLException si no se encuentra la ubicación o hay un error de BD
+     */
     private int obtenerIdUbicacion(String label) throws SQLException {
+        // Separamos el label "A1 - B2" en sus dos partes
         String[] partes = label.split(" - ", 2);
         String arm  = partes.length > 0 ? partes[0].trim() : "";
         String balda = partes.length > 1 ? partes[1].trim() : "";
@@ -1332,6 +1765,16 @@ public class AdminFrame extends JFrame {
         throw new SQLException("No se encontró la ubicación: " + label);
     }
 
+    /**
+     * Selecciona en un combo el ítem que coincide exactamente con el valor dado.
+     *
+     * <p>Se usa al cargar los datos de un elemento en el formulario de modificación
+     * para preseleccionar los valores actuales en los combos de categoría,
+     * estado y ubicación.</p>
+     *
+     * @param cb    el combo en el que buscar
+     * @param valor el texto del ítem a seleccionar; no hace nada si es {@code null}
+     */
     private void seleccionarEnCombo(JComboBox<String> cb, String valor) {
         if (valor == null) return;
         for (int i = 0; i < cb.getItemCount(); i++)
