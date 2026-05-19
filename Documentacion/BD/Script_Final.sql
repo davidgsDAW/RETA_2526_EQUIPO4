@@ -139,6 +139,8 @@ INSERT INTO usuario (nombre,contrasena,id_rol)VALUES
     ("angel","angel",1),
     ("mario","mario",1);
     
+INSERT INTO usuario (nombre,contrasena,id_rol) VALUES("juan","juan",2);
+    
     
 INSERT INTO ubicacion (id_localizacion, codigo_armario, codigo_balda, descripcion) VALUES
 (1, 'A1', 'B1', 'Armario principal, balda superior'),
@@ -158,7 +160,7 @@ INSERT INTO material (nombre, descripcion, cantidad, fecha_alta, observaciones, 
 ('Cable de red Cat6 2m', 'Uso general', 20, '2024-02-20', 'Color gris', 1, 1, 4),
 ('Disco SSD 480GB SATA', 'Marca Kingston', 6, '2024-01-25', 'Para montaje de equipos', 2, 1, 3),
 ('Polímetro digital', 'Mide tensión y continuidad', 1, '2024-03-10', 'Cuidar puntas', 3, 3, 5),    
-('Portátil Lenovo ThinkPad', 'i5, 8GB RAM, 256GB SSD', 2, '2024-02-28', 'Cargadores incluidos', 5, 2, 1);  
+('Portátil Lenovo ThinkPad', 'i5, 8GB RAM, 256GB SSD', 2, '2024-02-28', 'Cargadores incluidos', 5, 2, 1);
 
 
 CREATE INDEX idx_material_categoria ON material(id_categoria);
