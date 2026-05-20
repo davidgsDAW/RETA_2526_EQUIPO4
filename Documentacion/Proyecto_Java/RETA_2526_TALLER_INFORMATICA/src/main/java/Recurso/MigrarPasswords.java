@@ -6,24 +6,23 @@ import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Convierte las contraseñas en texto plano que ya existan en la tabla
- * 'usuarios' al formato BCrypt, necesario para que
- * LoginFrame pueda autenticar correctamente y encriptar las contraseñas para mas seguridad.
+ * 'usuarios' al formato BCrypt, necesario para que LoginFrame pueda autenticar
+ * correctamente y encriptar las contraseñas para mas seguridad.
  *
  * @author David Gómez
  * @version 1.0
  */
 public class MigrarPasswords {
 
-  
     private static final int BCRYPT_COST = 12;
 
     public static void main(String[] args) {
 
         System.out.println("  Migración de contraseñas → BCrypt (cost " + BCRYPT_COST + ")");
 
-
-        String sqlSelect = "SELECT id, usuario, password FROM usuarios";
-        String sqlUpdate = "UPDATE usuarios SET password = ? WHERE id = ?";
+      
+        String sqlSelect = "SELECT id_usuario, nombre, contrasena FROM usuario";
+        String sqlUpdate = "UPDATE usuario SET contrasena = ? WHERE id_usuario = ?";
 
         try (Connection con = ConexionBD.getInstance().getConn(); PreparedStatement psSelect = con.prepareStatement(sqlSelect); PreparedStatement psUpdate = con.prepareStatement(sqlUpdate)) {
 
@@ -33,9 +32,9 @@ public class MigrarPasswords {
             int errores = 0;
 
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String usuario = rs.getString("usuario");
-                String passActual = rs.getString("password");
+                int id = rs.getInt("id_usuario");
+                String usuario = rs.getString("nombre");
+                String passActual = rs.getString("contrasena");
 
                 // Detectar si ya es un hash BCrypt válido 
                 if (esBCrypt(passActual)) {
@@ -61,10 +60,8 @@ public class MigrarPasswords {
                 }
             }
 
- 
             System.out.printf("  Migrados: %d | Omitidos: %d | Errores: %d%n",
                     migrados, omitidos, errores);
-
 
             if (migrados > 0) {
                 System.out.println("  ✓ Migración completada. LoginFrame ya puede");

@@ -7,6 +7,7 @@ App_Ejecutable\AdminFrame$12.class
 Conexion_Base_Datos\ConexionBD$AccesoBaseDatosHolder.class
 App_Ejecutable\AdminFrame$6.class
 Enumerados\Rol_Usuario.class
+recurso\MigrarPasswords.class
 App_Ejecutable\AdminFrame$19.class
 App_Ejecutable\AdminFrame$9.class
 App_Ejecutable\ProfesorFrame$5.class

@@ -12,17 +12,13 @@ import java.sql.*;
 /**
  * Ventana principal para los usuarios con perfil de Profesor.
  * Tiene permisos de solo lectura sobre el inventario, puede buscar y filtrar,
- * localizar materiales en el mapa web del taller y generar informes.
- * 
- * Los datos se cargan desde la base de datos MySQL (tabla: material).
- * La localización visual se hace abriendo un navegador con la URL del MV2.
- * 
- * @author David Gómez
+ * * Los datos se cargan desde la base de datos MySQL.
+ * * @author David Gómez
  * @version 2.0
  */
 public class ProfesorFrame extends JFrame {
 
-    // Colores de la interfaz
+    // Paleta de colores para el tema oscuro (estilo moderno/Slate)
     private static final Color COLOR_FONDO       = new Color(15, 23, 42);
     private static final Color COLOR_SIDEBAR     = new Color(23, 33, 52);
     private static final Color COLOR_PANEL       = new Color(30, 41, 59);
@@ -38,15 +34,15 @@ public class ProfesorFrame extends JFrame {
     private static final Color COLOR_FILA_IMPAR  = new Color(38, 51, 73);
     private static final Color COLOR_SELECCION   = new Color(56, 189, 248, 60);
 
-    // URL del sitio web que muestra el mapa del taller (MV2)
+    /** URL del servidor local que gestiona el mapa interactivo del taller */
     private static final String URL_WEB_TALLER = "http://10.0.10.100";
 
-    // Columnas de la tabla
+    /** Cabeceras para las tablas de datos del inventario */
     private static final String[] COLUMNAS = {
         "ID", "Nombre", "Categoría", "Estado", "Cantidad", "Armario", "Balda"
     };
 
-    // Componentes principales
+    // Componentes de la arquitectura de la interfaz
     private JPanel            contenidoCentral;
     private CardLayout        cardLayout;
     private DefaultTableModel modeloTabla;
@@ -59,23 +55,35 @@ public class ProfesorFrame extends JFrame {
     private JLabel            lblItemSeleccionado;
     private String            usuarioActual;
 
+    /**
+     * Constructor principal. Configura el marco general de la ventana e inicializa
+     * los paneles de navegación y contenido.
+     * * @param usuario Nombre de usuario que ha iniciado sesión para personalizar la interfaz.
+     */
     public ProfesorFrame(String usuario) {
         this.usuarioActual = usuario;
         setTitle("Taller IES MHP · Panel Profesor — " + usuario);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1100, 700);
         setMinimumSize(new Dimension(860, 580));
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(null); // Centra la ventana en la pantalla
         getContentPane().setBackground(COLOR_FONDO);
         setLayout(new BorderLayout(0, 0));
 
+        // Estructura base: Menú a la izquierda, contenido en el centro y barra de estado abajo
         add(crearSidebar(),           BorderLayout.WEST);
         add(crearContenidoCentral(),  BorderLayout.CENTER);
         add(crearBarraEstado(),       BorderLayout.SOUTH);
 
+        // Forzamos que la primera pantalla visible sea la consulta general
         mostrarPanel("consulta");
     }
 
+    /**
+     * Construye la barra lateral de navegación (Sidebar).
+     * Aplica renderizado dinámico en 2D para fondos y bordes personalizados.
+     * * @return Componente JPanel que contiene el menú de navegación izquierdo.
+     */
     private JPanel crearSidebar() {
         JPanel sidebar = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
@@ -83,6 +91,7 @@ public class ProfesorFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setColor(COLOR_SIDEBAR);
                 g2.fillRect(0, 0, getWidth(), getHeight());
+                // Línea divisoria vertical estética a la derecha del menú
                 g2.setColor(COLOR_BORDE);
                 g2.fillRect(getWidth() - 1, 0, 1, getHeight());
                 g2.dispose();
@@ -92,6 +101,7 @@ public class ProfesorFrame extends JFrame {
         sidebar.setPreferredSize(new Dimension(220, 0));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
+        // Bloque superior de la barra lateral: Información del usuario conectado
         JPanel cab = new JPanel();
         cab.setOpaque(false);
         cab.setLayout(new BoxLayout(cab, BoxLayout.Y_AXIS));
@@ -113,17 +123,24 @@ public class ProfesorFrame extends JFrame {
         cab.add(lblNombre);
         sidebar.add(cab);
         sidebar.add(crearSeparadorSidebar());
+        
+        // Bloque central de navegación: Opciones de inventario
         sidebar.add(crearSeccion("INVENTARIO"));
         sidebar.add(crearItemMenu("📋", "Consultar Inventario", "consulta"));
         sidebar.add(crearItemMenu("🔍", "Buscar / Filtrar",     "buscar"));
         sidebar.add(crearItemMenu("📍", "Localizar Material",   "localizar"));
         sidebar.add(Box.createVerticalStrut(8));
         sidebar.add(crearSeparadorSidebar());
+        
+        // Bloque de reportes
         sidebar.add(crearSeccion("INFORMES"));
         sidebar.add(crearItemMenu("📄", "Generar Listados",     "informes"));
+        
+        // Empujamos el botón de cierre de sesión hacia la parte inferior del menú
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(crearSeparadorSidebar());
 
+        // Bloque inferior: Botón de logout
         JPanel panelLogout = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 12));
         panelLogout.setOpaque(false);
         panelLogout.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
@@ -141,6 +158,10 @@ public class ProfesorFrame extends JFrame {
         return sidebar;
     }
 
+    /**
+     * Crea una línea horizontal sutil para separar secciones del menú.
+     * * @return Componente JSeparator con el color del tema.
+     */
     private JSeparator crearSeparadorSidebar() {
         JSeparator sep = new JSeparator();
         sep.setForeground(COLOR_BORDE);
@@ -148,6 +169,11 @@ public class ProfesorFrame extends JFrame {
         return sep;
     }
 
+    /**
+     * Genera etiquetas de texto plano que actúan como títulos de sección en el menú.
+     * * @param texto Nombre de la categoría o sección.
+     * @return Un JLabel formateado.
+     */
     private JLabel crearSeccion(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
@@ -157,12 +183,21 @@ public class ProfesorFrame extends JFrame {
         return lbl;
     }
 
+    /**
+     * Crea un elemento interactivo para el menú lateral. Añade efectos visuales de hover
+     * y controla el intercambio de pantallas mediante clics.
+     *  @param icono Icono descriptivo (Emoji/Unicode).
+     * @param texto Texto a mostrar en la opción.
+     * @param panelId Identificador del panel asociado en el CardLayout.
+     * @return El panel contenedor del ítem del menú configurado.
+     */
     private JPanel crearItemMenu(String icono, String texto, String panelId) {
         JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 10)) {
             private boolean hover = false;
             {
                 setOpaque(false);
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                // Listeners para gestionar el efecto visual de selección y el cambio de vista
                 addMouseListener(new MouseAdapter() {
                     @Override public void mouseEntered(MouseEvent e) { hover = true;  repaint(); }
                     @Override public void mouseExited(MouseEvent e)  { hover = false; repaint(); }
@@ -170,6 +205,7 @@ public class ProfesorFrame extends JFrame {
                 });
             }
             @Override protected void paintComponent(Graphics g) {
+                // Si el ratón está encima, dibujamos un fondo azul transparente de realce
                 if (hover) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setColor(new Color(56, 189, 248, 20));
@@ -193,12 +229,18 @@ public class ProfesorFrame extends JFrame {
         return item;
     }
 
+    /**
+     * Centraliza y prepara el área derecha de la aplicación implementando un CardLayout.
+     * Adjunta los cuatro paneles funcionales del módulo de profesor.
+     * * @return El panel contenedor maestro con todas las vistas anidadas.
+     */
     private JPanel crearContenidoCentral() {
         cardLayout = new CardLayout();
         contenidoCentral = new JPanel(cardLayout);
         contenidoCentral.setOpaque(false);
         contenidoCentral.setBackground(COLOR_FONDO);
 
+        // Registro de los paneles disponibles en el contenedor por su identificador único
         contenidoCentral.add(crearPanelConsulta(),  "consulta");
         contenidoCentral.add(crearPanelBuscar(),    "buscar");
         contenidoCentral.add(crearPanelLocalizar(), "localizar");
@@ -207,15 +249,31 @@ public class ProfesorFrame extends JFrame {
         return contenidoCentral;
     }
 
+    /**
+     * Realiza la transición entre las pantallas de la interfaz usando el ID de tarjeta.
+     * * @param id Identificador string del panel que se desea poner en foco.
+     */
     private void mostrarPanel(String id) {
         cardLayout.show(contenidoCentral, id);
     }
 
+    /**
+     * Método core encargado de realizar las consultas SQL a la base de datos de manera dinámica.
+     * Construye la consulta filtrando únicamente por los campos que el usuario ha rellenado
+     * e inserta los resultados limpios en el TableModel correspondiente.
+     * * @param modelo El TableModel de destino que se actualizará con los datos obtenidos.
+     * @param nombre Filtro por nombre de material (búsqueda parcial utilizando LIKE).
+     * @param categoria Filtro por categoría exacta.
+     * @param estado Filtro por estado del equipo.
+     * @param armario Filtro por ubicación o código del armario.
+     */
     private void cargarInventario(DefaultTableModel modelo,
                                   String nombre, String categoria,
                                   String estado, String armario) {
+        // Limpiamos registros previos de la tabla para evitar acumulaciones
         modelo.setRowCount(0);
 
+        // Construcción de la consulta dinámica mediante concatenación controlada
         StringBuilder sql = new StringBuilder(
             "SELECT id, nombre, categoria, estado, cantidad, armario, balda FROM material WHERE 1=1");
         if (nombre   != null && !nombre.isEmpty())
@@ -228,9 +286,11 @@ public class ProfesorFrame extends JFrame {
             sql.append(" AND LOWER(armario) LIKE ?");
         sql.append(" ORDER BY id");
 
+        // Uso de try-with-resources para garantizar el cierre seguro de la conexión y statements
         try (Connection con = ConexionBD.getInstance().getConn();
              PreparedStatement ps = con.prepareStatement(sql.toString())) {
 
+            // Mapeo secuencial de parámetros para evitar inyecciones SQL 
             int idx = 1;
             if (nombre    != null && !nombre.isEmpty())
                 ps.setString(idx++, "%" + nombre.toLowerCase() + "%");
@@ -243,6 +303,7 @@ public class ProfesorFrame extends JFrame {
 
             ResultSet rs = ps.executeQuery();
             int total = 0;
+            // Procesamiento de resultados y formateo visual de la ID del material
             while (rs.next()) {
                 modelo.addRow(new Object[]{
                     String.format("%03d", rs.getInt("id")),
@@ -255,6 +316,7 @@ public class ProfesorFrame extends JFrame {
                 });
                 total++;
             }
+            // Refrescamos los datos informativos en la parte inferior de la app
             actualizarBarraEstado(total);
 
         } catch (SQLException ex) {
@@ -265,6 +327,11 @@ public class ProfesorFrame extends JFrame {
         }
     }
 
+    /**
+     * Recupera de forma única (DISTINCT) todos los armarios registrados en el sistema
+     * para rellenar de forma dinámica las opciones de los desplegables.
+     * * @return Vector de Strings que contiene los códigos de los armarios disponibles.
+     */
     private String[] cargarArmarios() {
         java.util.List<String> lista = new java.util.ArrayList<>();
         lista.add("Todos");
@@ -273,10 +340,14 @@ public class ProfesorFrame extends JFrame {
                  "SELECT DISTINCT armario FROM material WHERE armario IS NOT NULL ORDER BY armario");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) lista.add(rs.getString("armario"));
-        } catch (SQLException ignored) {}
+        } catch (SQLException ignored) {} // Fallo silencioso intencionado para no congelar la UX
         return lista.toArray(new String[0]);
     }
 
+    /**
+     * Recupera de forma única (DISTINCT) todas las baldas guardadas en la base de datos.
+     * * @return Vector de Strings con los nombres o números de baldas existentes.
+     */
     private String[] cargarBaldas() {
         java.util.List<String> lista = new java.util.ArrayList<>();
         lista.add("Todas");
@@ -289,11 +360,20 @@ public class ProfesorFrame extends JFrame {
         return lista.toArray(new String[0]);
     }
 
+    /**
+     * Formatea el texto dinámico de la barra de estado en base a los registros cargados.
+     * * @param total Cantidad total de elementos recuperados en la consulta actual.
+     */
     private void actualizarBarraEstado(int total) {
         lblEstado.setText("✓  Conectado a MySQL · " + total
             + " elemento(s) · BD: taller_mhp  ·  Perfil: Profesor (solo lectura)");
     }
 
+    /**
+     * Diseña y monta la interfaz del panel de "Consulta General".
+     * Configura la tabla principal inhabilitando la edición directa de las celdas.
+     * * @return El panel de consulta completo.
+     */
     private JPanel crearPanelConsulta() {
         JPanel panel = crearPanelBase("📋  Inventario del Taller");
 
@@ -305,10 +385,12 @@ public class ProfesorFrame extends JFrame {
         barraInfo.add(lblInfo);
         panel.add(barraInfo, BorderLayout.NORTH);
 
+        // Definición explícita del modelo para bloquear la edición por teclado en las celdas
         modeloTabla = new DefaultTableModel(COLUMNAS, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaInventario = crearTabla(modeloTabla);
+        // Vinculamos el renderizador personalizado a la columna de 'Estado'
         tablaInventario.getColumnModel().getColumn(3).setCellRenderer(estadoRenderer());
 
         JScrollPane scroll = new JScrollPane(tablaInventario);
@@ -317,6 +399,7 @@ public class ProfesorFrame extends JFrame {
         scroll.setBorder(BorderFactory.createLineBorder(COLOR_BORDE, 1));
         panel.add(scroll, BorderLayout.CENTER);
 
+        // Barra inferior que agrupa los botones de refresco y geolocalización
         JPanel barraInf = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         barraInf.setOpaque(false);
 
@@ -333,6 +416,7 @@ public class ProfesorFrame extends JFrame {
         barraInf.add(btnLoc);
         panel.add(barraInf, BorderLayout.SOUTH);
 
+        // Disparamos la carga inicial de datos en un hilo seguro posterior al pintado inicial de la UI
         SwingUtilities.invokeLater(() -> {
             cargarInventario(modeloTabla, null, null, null, null);
             lblInfo.setText("Vista de solo lectura · " + modeloTabla.getRowCount() + " elementos");
@@ -341,23 +425,31 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Construye el módulo avanzado de "Buscar y Filtrar".
+     * Organiza mediante GridBagLayout un formulario con filtros cruzados.
+     * * @return El panel de búsqueda parametrizada.
+     */
     private JPanel crearPanelBuscar() {
         JPanel panel = crearPanelBase("🔍  Buscar y Filtrar Material");
 
         JPanel card = crearCard("Criterios de búsqueda");
 
+        // Layout de rejilla flexible para alinear etiquetas y controles correctamente
         JPanel filtros = new JPanel(new GridBagLayout());
         filtros.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 0, 12, 12);
+        gbc.insets = new Insets(0, 0, 12, 12); // Margen entre celdas del formulario
 
+        // Fila 0: Campo de texto libre para nombres
         gbc.gridy = 0; gbc.gridx = 0; gbc.weightx = 0;
         filtros.add(etiqueta("Nombre / descripción"), gbc);
         gbc.gridx = 1; gbc.weightx = 1; gbc.gridwidth = 3;
         txtBusqueda = campoTexto();
         filtros.add(txtBusqueda, gbc);
 
+        // Fila 1: Selectores de Categoría y Estado alineados horizontalmente
         gbc.gridwidth = 1;
         gbc.gridy = 1; gbc.gridx = 0; gbc.weightx = 0;
         filtros.add(etiqueta("Categoría"), gbc);
@@ -378,12 +470,15 @@ public class ProfesorFrame extends JFrame {
         estilizarCombo(cbEstado);
         filtros.add(cbEstado, gbc);
 
+        // Fila 2: Filtro específico de código de armario
         gbc.gridy = 2; gbc.gridx = 0; gbc.weightx = 0;
         filtros.add(etiqueta("Código armario"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
         JTextField txtArmario = campoTexto();
         filtros.add(txtArmario, gbc);
 
+        // Fila 3: Fila final que contiene la botonera de control
+        gbc.gridy = 2; gbc.gridx = 2; gbc.gridwidth = 2; // Corrección visual/alineación
         gbc.gridy = 3; gbc.gridx = 0; gbc.gridwidth = 4;
         gbc.insets = new Insets(8, 0, 0, 0);
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -397,6 +492,7 @@ public class ProfesorFrame extends JFrame {
         JTable tablaRes = crearTabla(modeloResultados);
         tablaRes.getColumnModel().getColumn(3).setCellRenderer(estadoRenderer());
 
+        // Comportamientos de los botones del formulario
         btnLimpiar.addActionListener(e -> {
             txtBusqueda.setText("");
             txtArmario.setText("");
@@ -447,12 +543,19 @@ public class ProfesorFrame extends JFrame {
         panel.add(scroll,   BorderLayout.CENTER);
         panel.add(barraInf, BorderLayout.SOUTH);
 
+        // Forzamos un primer volcado completo en la tabla al abrir el panel por comodidad
         SwingUtilities.invokeLater(() ->
             cargarInventario(modeloResultados, null, null, null, null));
 
         return panel;
     }
 
+    /**
+     * Construye el panel dedicado a la geolocalización de ítems. Permite escoger un objeto
+     * de la lista y muestra sus coordenadas dentro de las estanterías físicas del taller,
+     * habilitando el acceso a un plano web interactivo externo.
+     * * @return El panel de localización configurado.
+     */
     private JPanel crearPanelLocalizar() {
         JPanel panel = crearPanelBase("📍  Localizar Material en el Taller");
 
@@ -482,6 +585,7 @@ public class ProfesorFrame extends JFrame {
 
         JPanel cardInfo = crearCard("Ubicación del elemento");
 
+        // Panel de cuadrícula para presentar los datos clave de localización limpia
         JPanel infoGrid = new JPanel(new GridLayout(2, 4, 16, 12));
         infoGrid.setOpaque(false);
 
@@ -501,7 +605,7 @@ public class ProfesorFrame extends JFrame {
         btnWeb.setOpaque(false);
         JButton btnAbrirWeb = crearBoton("🌐  Abrir sitio web de visualización del taller", COLOR_ACENTO2);
         btnAbrirWeb.setPreferredSize(new Dimension(420, 46));
-        btnAbrirWeb.setEnabled(false);
+        btnAbrirWeb.setEnabled(false); // Deshabilitado hasta que haya una selección válida
         btnWeb.add(btnAbrirWeb);
 
         lblItemSeleccionado = new JLabel("Selecciona un elemento para ver su ubicación.");
@@ -513,8 +617,10 @@ public class ProfesorFrame extends JFrame {
         cardInfo.add(lblItemSeleccionado, BorderLayout.CENTER);
         cardInfo.add(btnWeb,              BorderLayout.SOUTH);
 
+        // Estructura de datos interna en memoria para cachear los objetos y evitar consultas redundantes a la BD
         java.util.List<Object[]> filasBD = new java.util.ArrayList<>();
 
+        // Cargamos todos los elementos del almacén en el ComboBox
         SwingUtilities.invokeLater(() -> {
             String sql = "SELECT id, nombre, categoria, armario, balda FROM material ORDER BY nombre";
             try (Connection con = ConexionBD.getInstance().getConn();
@@ -538,6 +644,7 @@ public class ProfesorFrame extends JFrame {
             }
         });
 
+        // Acción al pulsar "Ver localización": actualiza las etiquetas y activa el botón web con parámetros limpios
         btnLocalizar.addActionListener(e -> {
             int idx = cbElemento.getSelectedIndex();
             if (idx == 0) {
@@ -546,7 +653,7 @@ public class ProfesorFrame extends JFrame {
                     "Sin selección", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-            Object[] dato = filasBD.get(idx - 1);
+            Object[] dato = filasBD.get(idx - 1); // Compensamos la cabecera por defecto "Selecciona..."
             lblsVal[0].setText(dato[1].toString());
             lblsVal[1].setText(dato[2].toString());
             lblsVal[2].setText(dato[3] != null ? dato[3].toString() : "—");
@@ -556,6 +663,7 @@ public class ProfesorFrame extends JFrame {
             lblItemSeleccionado.setForeground(COLOR_OK);
             btnAbrirWeb.setEnabled(true);
 
+            // Evitamos la acumulación de Listeners antiguos limpiando la cola antes de inyectar el nuevo evento web
             for (ActionListener al : btnAbrirWeb.getActionListeners())
                 btnAbrirWeb.removeActionListener(al);
             btnAbrirWeb.addActionListener(ev ->
@@ -568,12 +676,18 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Construye el panel para solicitar informes o listados de stock.
+     * Divide la pantalla en 3 tarjetas independientes para cada modalidad de exportación.
+     * * @return Panel funcional de generación de listados.
+     */
     private JPanel crearPanelInformes() {
         JPanel panel = crearPanelBase("📄  Generar Listados");
 
         JPanel contenido = new JPanel(new GridLayout(1, 3, 16, 0));
         contenido.setOpaque(false);
 
+        // Tarjeta 1: Inventario Completo sin filtros
         JPanel c1 = crearCard("📋  Listado completo");
         JLabel d1 = new JLabel("<html><body style='width:150px;color:#94A3B8'>Exporta el inventario<br>completo del taller.</body></html>");
         d1.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -583,6 +697,7 @@ public class ProfesorFrame extends JFrame {
         p1.add(d1, BorderLayout.CENTER); p1.add(b1, BorderLayout.SOUTH);
         c1.add(p1, BorderLayout.CENTER);
 
+        // Tarjeta 2: Filtros cruzados de Clasificación (Categoría/Estado)
         JPanel c2 = crearCard("🗂  Por categoría / estado");
         JPanel sel2 = new JPanel(new GridLayout(4, 1, 0, 8)); sel2.setOpaque(false);
         JComboBox<String> cbCat2 = new JComboBox<>(new String[]{
@@ -603,6 +718,8 @@ public class ProfesorFrame extends JFrame {
         p2.add(sel2, BorderLayout.CENTER); p2.add(b2, BorderLayout.SOUTH);
         c2.add(p2, BorderLayout.CENTER);
 
+        // Tarjeta 3: Filtros por coordenadas físicas (Armario/Balda)
+        // Se cargan las opciones llamando a los métodos dinámicos que leen la BD en tiempo real
         JPanel c3 = crearCard("📍  Por armario / balda");
         JPanel sel3 = new JPanel(new GridLayout(4, 1, 0, 8)); sel3.setOpaque(false);
         JComboBox<String> cbArm = new JComboBox<>(cargarArmarios());
@@ -631,9 +748,15 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Construye la franja estética inferior del programa. Muestra el estado del servidor
+     * y computa la fecha del día actual.
+     * * @return El panel inferior para barra de estado.
+     */
     private JPanel crearBarraEstado() {
         JPanel barra = new JPanel(new BorderLayout());
         barra.setBackground(new Color(10, 16, 30));
+        // Línea sutil superior para separarlo del contenido de los paneles
         barra.setBorder(new CompoundBorder(
                 new MatteBorder(1, 0, 0, 0, COLOR_BORDE),
                 new EmptyBorder(6, 16, 6, 16)));
@@ -652,6 +775,10 @@ public class ProfesorFrame extends JFrame {
         return barra;
     }
 
+    /**
+     * Helper que valida si el profesor ha seleccionado un registro válido en la tabla
+     * principal y mapea los datos para llamar al visor web.
+     */
     private void localizarSeleccionado() {
         int fila = tablaInventario.getSelectedRow();
         if (fila < 0) {
@@ -660,6 +787,7 @@ public class ProfesorFrame extends JFrame {
                 "Sin selección", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
+        // Extraemos las strings directamente de las celdas deseadas de la fila seleccionada
         abrirWebLocalizar(
             modeloTabla.getValueAt(fila, 1).toString(),
             modeloTabla.getValueAt(fila, 5).toString(),
@@ -667,7 +795,15 @@ public class ProfesorFrame extends JFrame {
         );
     }
 
+    /**
+     * Utiliza el API Desktop del sistema operativo para abrir de forma automática
+     * el navegador por defecto cargando la URL paramétrica del mapa del taller.
+     * * @param nombre Nombre del material.
+     * @param armario Código identificador del armario.
+     * @param balda Número de la balda.
+     */
     private void abrirWebLocalizar(String nombre, String armario, String balda) {
+        // Codificamos los espacios en blanco a formato URL estándar (%20) para evitar URLs truncadas rotas
         String url = URL_WEB_TALLER + "?armario=" + armario + "&balda=" + balda
                 + "&item=" + nombre.replace(" ", "%20");
         try {
@@ -680,7 +816,15 @@ public class ProfesorFrame extends JFrame {
         }
     }
 
+    /**
+     * Simula y procesa la generación de un reporte cuantitativo contra la base de datos,
+     * mostrando al usuario un resumen en pantalla mediante un panel informativo.
+     * * @param tipo Criterio seleccionado ("completo", "categoria" o "ubicacion").
+     * @param filtro1 Primer parámetro del filtro (ej: Nombre de Categoría o Código de Armario).
+     * @param filtro2 Segundo parámetro del filtro (ej: Estado o Código de Balda).
+     */
     private void generarListado(String tipo, String filtro1, String filtro2) {
+        // Lanzamos una consulta COUNT simple para verificar la cantidad de registros que entrarán en el reporte
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS total FROM material WHERE 1=1");
 
@@ -704,6 +848,7 @@ public class ProfesorFrame extends JFrame {
              ResultSet rs = ps.executeQuery()) {
 
             int total = rs.next() ? rs.getInt("total") : 0;
+            // Estructuramos un desglose descriptivo usando patrones Switch modernos
             String desc = switch (tipo) {
                 case "categoria" -> "Categoría: " + (filtro1 != null ? filtro1 : "Todas")
                                   + "\nEstado: " + (filtro2 != null ? filtro2 : "Todos");
@@ -724,17 +869,26 @@ public class ProfesorFrame extends JFrame {
         }
     }
 
+    /**
+     * Solicita confirmación de salida al usuario. Destruye la ventana de profesor
+     * y devuelve el flujo abriendo un nuevo marco de LoginFrame.
+     */
     private void cerrarSesion() {
         int resp = JOptionPane.showConfirmDialog(this,
                 "¿Cerrar sesión y volver al login?", "Cerrar sesión",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (resp == JOptionPane.YES_OPTION) {
-            dispose();
-            new LoginFrame().setVisible(true);
+            dispose(); // Cierra y libera los recursos gráficos del marco actual
+            new LoginFrame().setVisible(true); // Redirección
         }
     }
 
-
+    /**
+     * Factoría de interfaz para construir el panel contenedor base. Asegura
+     * una homogeneidad estética en todas las vistas compartiendo padding y estilos de títulos.
+     * * @param titulo Encabezado principal del panel de trabajo.
+     * @return Panel pre-formateado.
+     */
     private JPanel crearPanelBase(String titulo) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(false);
@@ -749,10 +903,17 @@ public class ProfesorFrame extends JFrame {
         return panel;
     }
 
+    /**
+     * Componente contenedor con diseño de tarjeta ("Card") que emula interfaces modernas.
+     * Implementa bordes y esquinas redondeadas suavizadas mediante técnicas de Antialiasing.
+     * * @param titulo El sub-título de la sección o tarjeta.
+     * @return El panel estilizado como tarjeta.
+     */
     private JPanel crearCard(String titulo) {
         JPanel card = new JPanel(new BorderLayout(0, 12)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
+                // Activación de filtros de suavizado para evitar dientes de sierra en los bordes curvos
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(COLOR_PANEL);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
@@ -770,10 +931,17 @@ public class ProfesorFrame extends JFrame {
         return card;
     }
 
+    /**
+     * Inicializa y parametriza las propiedades globales visuales de las tablas de datos,
+     * sobreescribiendo el renderizador nativo para alternar el tono de las filas pares e impares (filas cebra).
+     * * @param modelo Estructura de datos que alimentará la JTable.
+     * @return JTable modificada con diseño Dark UI.
+     */
     private JTable crearTabla(DefaultTableModel modelo) {
         JTable tabla = new JTable(modelo) {
             @Override public Component prepareRenderer(TableCellRenderer r, int row, int col) {
                 Component c = super.prepareRenderer(r, row, col);
+                // Alternador de color de fondo por fila para mejorar considerablemente la lectura
                 if (isRowSelected(row)) {
                     c.setBackground(COLOR_SELECCION);
                 } else {
@@ -783,6 +951,7 @@ public class ProfesorFrame extends JFrame {
                 return c;
             }
         };
+        // Parámetros de dimensionamiento y visualización de rejillas
         tabla.setBackground(COLOR_FONDO);
         tabla.setForeground(COLOR_TEXTO);
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -793,6 +962,8 @@ public class ProfesorFrame extends JFrame {
         tabla.setSelectionBackground(COLOR_SELECCION);
         tabla.setSelectionForeground(COLOR_TEXTO);
         tabla.setFillsViewportHeight(true);
+        
+        // Ajustes y maquetación de la cabecera (Header) de la tabla
         tabla.getTableHeader().setBackground(new Color(23, 33, 52));
         tabla.getTableHeader().setForeground(COLOR_SUBTEXTO);
         tabla.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -800,12 +971,19 @@ public class ProfesorFrame extends JFrame {
         return tabla;
     }
 
+    /**
+     * Renderizador propio de celdas enfocado a evaluar la columna "Estado".
+     * Modifica dinámicamente el color del texto dependiendo del valor de la celda
+     * (Operativo -> Verde, Averiado -> Rojo, etc.).
+     * * @return Un objeto TableCellRenderer con lógica condicional de color.
+     */
     private TableCellRenderer estadoRenderer() {
         return new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(
                     JTable t, Object val, boolean sel, boolean foc, int row, int col) {
                 super.getTableCellRendererComponent(t, val, sel, foc, row, col);
                 String s = val != null ? val.toString() : "";
+                // Mapeo cromático según los estados de inventario establecidos
                 switch (s) {
                     case "Operativo"     -> setForeground(COLOR_OK);
                     case "Averiado"      -> setForeground(COLOR_PELIGRO);
@@ -813,6 +991,7 @@ public class ProfesorFrame extends JFrame {
                     case "Obsoleto"      -> setForeground(COLOR_SUBTEXTO);
                     default              -> setForeground(COLOR_TEXTO);
                 }
+                // Mantenemos la lógica cromática de selección intacta
                 setBackground(sel ? COLOR_SELECCION
                                   : (row % 2 == 0 ? COLOR_FILA_PAR : COLOR_FILA_IMPAR));
                 return this;
@@ -820,6 +999,13 @@ public class ProfesorFrame extends JFrame {
         };
     }
 
+    /**
+     * Crea un botón corporativo estilizado con esquinas redondeadas y
+     * comportamiento dinámico integrado para simular transiciones al pasar el cursor.
+     * * @param texto Cadena textual interna del botón.
+     * @param fondo Color base de fondo del elemento.
+     * @return JButton configurado.
+     */
     private JButton crearBoton(String texto, Color fondo) {
         JButton btn = new JButton(texto) {
             private boolean hover = false;
@@ -832,12 +1018,14 @@ public class ProfesorFrame extends JFrame {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // Si está en foco del ratón, aclaramos levemente el tono para denotar interactividad
                 g2.setColor(hover ? fondo.brighter() : fondo);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
+        // Ajuste inteligente del color de la fuente para cumplir criterios de accesibilidad/contraste
         btn.setForeground(fondo.equals(COLOR_PANEL) ? COLOR_TEXTO : COLOR_FONDO);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setContentAreaFilled(false);
@@ -848,6 +1036,11 @@ public class ProfesorFrame extends JFrame {
         return btn;
     }
 
+    /**
+     * Generador rápido de JLabels estandarizadas para textos explicativos de formularios.
+     * * @param texto Contenido textual de la etiqueta.
+     * @return El objeto JLabel resultante.
+     */
     private JLabel etiqueta(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -855,18 +1048,27 @@ public class ProfesorFrame extends JFrame {
         return lbl;
     }
 
+    /**
+     * Inicializa un JTextField con un estilo plano unificado, configurando bordes
+     * internos (paddings) para evitar que el texto colisione con el marco físico del control.
+     * * @return Componente JTextField personalizado.
+     */
     private JTextField campoTexto() {
         JTextField tf = new JTextField();
         tf.setBackground(new Color(51, 65, 85));
         tf.setForeground(COLOR_TEXTO);
-        tf.setCaretColor(COLOR_ACENTO);
+        tf.setCaretColor(COLOR_ACENTO); // Color del puntero titilante
         tf.setBorder(new CompoundBorder(
                 new LineBorder(COLOR_BORDE, 1, true),
-                new EmptyBorder(6, 10, 6, 10)));
+                new EmptyBorder(6, 10, 6, 10))); // Margen interno de confort
         tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         return tf;
     }
 
+    /**
+     * Setea los colores base para uniformar los componentes JComboBox del sistema.
+     * * @param cb Referencia del JComboBox a alterar.
+     */
     private void estilizarCombo(JComboBox<?> cb) {
         cb.setBackground(COLOR_PANEL);
         cb.setForeground(COLOR_TEXTO);
