@@ -58,7 +58,7 @@ public class LoginFrame extends JFrame {
      * Crea la parte superior de la ventana con el título, subtítulo y un icono.
      * Le pongo un degradado de fondo para que quede más bonito.
      * 
-     * @return Panel de cabecera listo
+     * @return Panel de cabecera 
      */
     private JPanel crearPanelCabecera() {
         JPanel panel = new JPanel() {
@@ -435,7 +435,7 @@ public class LoginFrame extends JFrame {
     /**
      * Punto de entrada de la aplicación.
      * 
-     * @param args Argumentos de línea de comandos (no se usan)
+     * @param args 
      */
     public static void main(String[] args) {
         // Intento usar el tema visual del sistema operativo

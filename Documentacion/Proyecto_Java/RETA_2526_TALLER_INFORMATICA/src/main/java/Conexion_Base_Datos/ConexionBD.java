@@ -11,7 +11,7 @@ import java.util.Properties;
  * Clase que gestiona la conexión a la base de datos MySQL.
  * Implementa el patrón Singleton para asegurar una única instancia de conexión.
  * 
- * @author Tu Nombre
+ * @author David Gómez
  * @version 1.0
  * @since 2026-05-11
  */

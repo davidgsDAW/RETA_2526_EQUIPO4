@@ -919,11 +919,7 @@ public class AdminFrame extends JFrame {
 
     /**
      * Cambia el estado del material a BAJA en la BD.
-     *
-     * No elimina físicamente el registro: solo actualiza el campo
-     *  id_estado al valor correspondiente a "BAJA" en la tabla
-     * estado_elemento. Esto permite mantener el historial completo.
-     *
+     * No elimina físicamente el registro, solo actualiza el campo de estado y lo pone en BAJA.
      * @param id identificador del material a dar de baja
      */
     private void darDeBajaMaterial(int id) {
@@ -954,7 +950,7 @@ public class AdminFrame extends JFrame {
      * Al registrar una devolución se actualiza la fecha en la BD y el material
      * vuelve a estar disponible.
      *
-     * @return el panel "prestamos" listo para añadirse al CardLayout
+     * @return el panel prestamos 
      */
     private JPanel crearPanelPrestamos() {
         JPanel panel = crearPanelBase("📦  Gestión de Préstamos");
@@ -999,13 +995,11 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Carga o recarga todos los préstamos desde la BD en el modelo indicado.
+     * Carga todos los préstamos desde la BD en el modelo indicado.
      *
-     * <p>El estado del préstamo se calcula dinámicamente: si
-     * {@code fecha_devolucion} es NULL, el préstamo está "ACTIVO";
-     * en caso contrario, "DEVUELTO".</p>
+     * El estado del préstamo se calcula dinámicamente
      *
-     * @param modelo el {@link DefaultTableModel} al que se añaden las filas
+     * @param modelo al que se añaden las filas
      */
     private void cargarPrestamos(DefaultTableModel modelo) {
         modelo.setRowCount(0);
@@ -1038,11 +1032,10 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Abre un diálogo modal para crear un nuevo préstamo.
+     * Abre un diálogo para crear un nuevo préstamo.
      *
-     * <p>Solicita el ID del material y el ID del usuario. La fecha de
+     * Solicita el ID del material y el ID del usuario. La fecha de
      * préstamo se asigna automáticamente a la fecha actual del servidor
-     * con {@code CURDATE()}.</p>
      *
      * @param modeloP modelo de la tabla de préstamos para refrescarlo tras la inserción
      */
@@ -1088,9 +1081,7 @@ public class AdminFrame extends JFrame {
     /**
      * Registra la devolución de un préstamo activo estableciendo la fecha actual.
      *
-     * <p>Solo actualiza filas donde {@code fecha_devolucion IS NULL} para
-     * evitar sobreescribir devoluciones ya registradas. Si el {@code UPDATE}
-     * no afecta a ninguna fila, informa al usuario.</p>
+     * Solo actualiza filas donde la fecha sea nula
      *
      * @param idPrestamo identificador del préstamo a marcar como devuelto
      * @param modeloP    modelo de la tabla para refrescarlo tras el cambio
@@ -1126,12 +1117,10 @@ public class AdminFrame extends JFrame {
     /**
      * Crea el panel de gestión de usuarios.
      *
-     * <p>Lista todos los usuarios del sistema con su ID, nombre y rol.
+     * Lista todos los usuarios del sistema 
      * Permite crear nuevos usuarios, eliminarlos y refrescar la tabla.
-     * El botón "Editar" está añadido visualmente pero su lógica queda
-     * pendiente de implementación.</p>
-     *
-     * @return el panel "usuarios" listo para añadirse al CardLayout
+     *(pendiente de la implementación del boton "editar")
+     * @return el panel usuario
      */
     private JPanel crearPanelUsuarios() {
         JPanel panel = crearPanelBase("👤  Gestión de Usuarios");
@@ -1150,7 +1139,7 @@ public class AdminFrame extends JFrame {
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
         JButton btnNuevo   = crearBoton("➕ Nuevo usuario", COLOR_OK);
-        JButton btnEditar  = crearBoton("✏️ Editar",       COLOR_ACENTO);
+//        JButton btnEditar  = crearBoton("✏️ Editar",       COLOR_ACENTO);
         JButton btnElim    = crearBoton("🗑 Eliminar",      COLOR_PELIGRO);
         JButton btnRefresh = crearBoton("↻ Actualizar",    COLOR_PANEL);
 
@@ -1164,7 +1153,7 @@ public class AdminFrame extends JFrame {
         });
 
         botones.add(btnNuevo);
-        botones.add(btnEditar);
+//        botones.add(btnEditar);
         botones.add(btnElim);
         botones.add(btnRefresh);
 
@@ -1176,9 +1165,9 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Carga todos los usuarios de la BD en el modelo indicado.
+     * Carga todos los usuarios de la BD
      *
-     * @param modelo el {@link DefaultTableModel} al que se añaden las filas
+     * @param modelo al que se añaden las filas
      */
     private void cargarUsuarios(DefaultTableModel modelo) {
         modelo.setRowCount(0);
@@ -1207,10 +1196,8 @@ public class AdminFrame extends JFrame {
     /**
      * Abre un diálogo modal para dar de alta a un nuevo usuario.
      *
-     * <p>Solicita nombre, contraseña y rol. La contraseña se almacena
-     * tal cual en la BD (sin hash); esto es una limitación conocida
-     * de la versión actual.</p>
-     *
+     * Solicita nombre, contraseña y rol. La contraseña se almacena
+     * en la BD con bcript.
      * @param modeloU modelo de usuarios para refrescarlo tras la inserción
      */
     private void dialogoNuevoUsuario(DefaultTableModel modeloU) {
@@ -1252,9 +1239,7 @@ public class AdminFrame extends JFrame {
     /**
      * Elimina físicamente un usuario de la BD previa confirmación.
      *
-     * <p>A diferencia de la baja de material, aquí sí se elimina el registro.
-     * Antes de llamar a este método conviene verificar que el usuario no tenga
-     * préstamos activos para evitar problemas de integridad referencial.</p>
+     * A diferencia de la baja de material, aquí sí se elimina el registro.
      *
      * @param id      identificador del usuario a eliminar
      * @param modeloU modelo de usuarios para refrescarlo tras el borrado
@@ -1279,11 +1264,9 @@ public class AdminFrame extends JFrame {
     /**
      * Crea el panel del historial de movimientos.
      *
-     * <p>Muestra los últimos 200 registros de la tabla
-     * {@code historial_movimiento} ordenados por fecha descendente.
-     * El límite de 200 evita cargas lentas en talleres con mucha actividad.</p>
+     * Muestra los últimos 200 registros de la tabla ordenados por fecha descendente , el limite de 200 registros ayuda a talleres con mucha actividad. 
      *
-     * @return el panel "historial" listo para añadirse al CardLayout
+     * @return el panel historial
      */
     private JPanel crearPanelHistorial() {
         JPanel panel = crearPanelBase("📊  Historial de Movimientos");
@@ -1315,7 +1298,7 @@ public class AdminFrame extends JFrame {
     /**
      * Carga los movimientos del historial desde la BD en el modelo indicado.
      *
-     * <p>Se limita a los 200 registros más recientes para mantener el rendimiento.</p>
+     * Se limita a los 200 registros más recientes para mantener el rendimiento.
      *
      * @param modelo el {@link DefaultTableModel} al que se añaden las filas
      */
@@ -1351,12 +1334,12 @@ public class AdminFrame extends JFrame {
     /**
      * Crea el panel de importación y exportación de datos.
      *
-     * <p>Divide el espacio en dos tarjetas: una para importar (CSV/XLSX)
+     * Divide el espacio en dos tarjetas: una para importar (CSV/XLSX)
      * y otra para exportar (CSV, Excel, PDF). En esta versión los botones
      * están creados pero la lógica de importación/exportación real aún
-     * no está implementada.</p>
+     * no está implementada lo dejamos como mejora para proximas sesiones.
      *
-     * @return el panel "importar" listo para añadirse al CardLayout
+     * @return el pane importar
      */
     private JPanel crearPanelImportar() {
         JPanel panel = crearPanelBase("📤  Importar / Exportar Datos");
@@ -1414,11 +1397,10 @@ public class AdminFrame extends JFrame {
     /**
      * Crea la barra de estado inferior de la ventana.
      *
-     * <p>A la izquierda muestra el estado de la conexión a la BD
-     * (actualizado por {@link #cargarInventario(String, String, String)})
-     * y a la derecha la fecha actual formateada.</p>
+     * A la izquierda muestra el estado de la conexión a la BD
+     * y a la derecha la fecha actual formateada.
      *
-     * @return el {@link JPanel} de la barra de estado
+     * @return el panel de la barra de estado
      */
     private JPanel crearBarraEstado() {
         JPanel barra = new JPanel(new BorderLayout());
@@ -1444,12 +1426,12 @@ public class AdminFrame extends JFrame {
     /**
      * Crea un panel base con título grande para cualquier vista del área central.
      *
-     * <p>Todos los paneles de contenido usan este método como punto de partida
+     * Todos los paneles de contenido usan este método como punto de partida
      * para garantizar un aspecto uniforme: fondo transparente, márgenes
-     * consistentes y título en la parte superior.</p>
+     * consistentes y título en la parte superior.
      *
      * @param titulo texto que aparece como encabezado de la vista
-     * @return el {@link JPanel} base listo para añadirle el contenido específico
+     * @return el panel base listo para añadirle el contenido específico
      */
     private JPanel crearPanelBase(String titulo) {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
@@ -1466,13 +1448,12 @@ public class AdminFrame extends JFrame {
     /**
      * Crea una "tarjeta" con fondo redondeado y borde sutil.
      *
-     * <p>Se usa para agrupar visualmente secciones dentro de un panel,
-     * como la vista previa en la baja o los selectores en importar/exportar.
+     * Se usa para agrupar visualmente secciones dentro de un panel,
      * El fondo y el borde se pintan manualmente para conseguir esquinas
-     * redondeadas sin depender de componentes externos.</p>
+     * redondeadas sin depender de componentes externos..
      *
      * @param titulo texto que aparece como título de la tarjeta
-     * @return el {@link JPanel} con aspecto de tarjeta
+     * @return el panel con aspecto de tarjeta
      */
     private JPanel crearCard(String titulo) {
         JPanel card = new JPanel(new BorderLayout(0, 12)) {
@@ -1496,15 +1477,14 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Crea y configura una {@link JTable} con el estilo visual de la aplicación.
+     * Crea y configura una tabla con el estilo visual de la aplicación.
      *
-     * <p>Aplica colores alternados de fila (par/impar), elimina las líneas
+     * Aplica colores alternados de fila elimina las líneas
      * verticales, configura el header con fuente pequeña en mayúsculas y
-     * deshabilita el renderizado por defecto para tomar control total del
-     * aspecto visual mediante {@code prepareRenderer}.</p>
+     * deshabilita el renderizado por defecto para tomar poder controlar todo el tema visual. 
      *
-     * @param modelo el {@link DefaultTableModel} que usará la tabla
-     * @return la {@link JTable} estilizada
+     * @param modelo el modelo por defecto que usará la tabla
+     * @return la tabla estilizada
      */
     private JTable crearTabla(DefaultTableModel modelo) {
         JTable tabla = new JTable(modelo) {
@@ -1535,7 +1515,7 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Crea un {@link JTextField} con el estilo visual estándar de la aplicación.
+     * Crea un texto con el estilo visual estándar de la aplicación.
      *
      * @return el campo de texto estilizado
      */
@@ -1546,11 +1526,9 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Aplica el estilo visual estándar a un {@link JTextField} existente.
+     * Aplica el estilo visual estándar a un texto existente.
      *
-     * <p>Se extrae como método separado para poder reutilizarlo tanto en
-     * {@link #campoTexto()} como cuando necesitamos estilizar campos
-     * creados fuera de este método (p.ej. los campos de los diálogos).</p>
+     * Se extrae como método separado para poder reutilizarlo 
      *
      * @param tf el campo de texto al que se aplica el estilo
      */
@@ -1565,9 +1543,9 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Aplica el estilo visual estándar a un {@link JComboBox}.
+     * Aplica el estilo visual estándar a un combo box .
      *
-     * @param cb el combo al que se aplica el estilo
+     * @param cb el combo box al que se aplica el estilo
      */
     private void estilizarCombo(JComboBox<?> cb) {
         cb.setBackground(COLOR_PANEL);
@@ -1578,14 +1556,11 @@ public class AdminFrame extends JFrame {
     /**
      * Crea un botón con fondo de color personalizado y efecto hover.
      *
-     * <p>El fondo se pinta manualmente con esquinas redondeadas mediante
-     * {@code paintComponent}. Al pasar el ratón por encima, el color
-     * se aclara ligeramente con {@code Color.brighter()}. El texto
-     * es oscuro si el fondo es claro y viceversa.</p>
-     *
+     * El fondo se pinta manualmente con esquinas redondeadas.
+     * Al pasar el ratón por encima, el color cambia a uno mas clarito.
      * @param texto texto que aparece en el botón
      * @param fondo color de fondo del botón
-     * @return el {@link JButton} estilizado
+     * @return el boton estilizado
      */
     private JButton crearBoton(String texto, Color fondo) {
         JButton btn = new JButton(texto) {
@@ -1603,7 +1578,7 @@ public class AdminFrame extends JFrame {
                 super.paintComponent(g);
             }
         };
-        // Si el fondo es el color de panel (neutro), el texto va en claro; si no, en oscuro
+        // Si el fondo es el color de panel , el texto va en claro; si no, en oscuro
         btn.setForeground(fondo.equals(COLOR_PANEL) ? COLOR_TEXTO : COLOR_FONDO);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setContentAreaFilled(false);
@@ -1615,10 +1590,7 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Solicita confirmación y vuelve a la pantalla de login cerrando esta ventana.
-     *
-     * <p>Al confirmar se llama a {@code dispose()} para liberar los recursos
-     * del frame actual antes de crear el {@link LoginFrame}.</p>
+     * Solicita confirmación y vuelve a la pantalla de login cerrando esta ventana para optimizar los recursos loq ue hace que nuestra aplicacion sea mas ligera.
      */
     private void cerrarSesion() {
         int resp = JOptionPane.showConfirmDialog(this,
@@ -1630,12 +1602,10 @@ public class AdminFrame extends JFrame {
         }
     }
 
-    // metodos que cargan los combobox, por ejemplo los de insertar nuevo material
+    // metodos que cargan los combobox
 
     /**
-     * Rellena un combo con todas las categorías de la tabla {@code categoria},
-     * sin incluir la opción "Todos". Útil para formularios de alta/modificación.
-     *
+     * Rellena un combo con todas las categorías de la tabla categorias
      * @param cb el combo a rellenar
      */
     private void cargarComboCategorias(JComboBox<String> cb) {
@@ -1648,8 +1618,7 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Rellena un combo con todas las categorías más la opción "Todos" al principio.
-     * Útil para los filtros de búsqueda donde queremos poder ver todo.
+     * Rellena un combo con todas las categorías más la opción
      *
      * @param cb el combo a rellenar
      */
@@ -1664,8 +1633,7 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Rellena un combo con todos los estados disponibles en {@code estado_elemento},
-     * sin incluir la opción "Todos".
+     * Rellena un combo con todos los estados disponibles en la tabla elementos_estados 
      *
      * @param cb el combo a rellenar
      */
@@ -1679,8 +1647,7 @@ public class AdminFrame extends JFrame {
     }
 
     /**
-     * Rellena un combo con todos los estados más la opción "Todos" al principio.
-     * Útil para los filtros de búsqueda.
+     * Rellena un combo con todos los estados
      *
      * @param cb el combo a rellenar
      */
@@ -1696,7 +1663,7 @@ public class AdminFrame extends JFrame {
 
 
     /**
-     * Rellena un combo con todas las ubicaciones de la tabla {@code ubicacion},
+     * Rellena un combo con todas las ubicaciones de la tabla ubicacion
      * mostradas con el formato "armario - balda".
      *
      * @param cb el combo a rellenar
@@ -1716,12 +1683,11 @@ public class AdminFrame extends JFrame {
     /**
      * Busca el ID numérico de un registro a partir de su nombre en una tabla genérica.
      *
-     * <p>Se usa para resolver los IDs de categoría, estado, etc., a partir
-     * del texto seleccionado en un combo antes de insertar o actualizar.</p>
+     * Se usa para resolver los IDs de categoría, estado...
      *
      * @param tabla   nombre de la tabla donde buscar
      * @param campoId nombre de la columna que contiene el ID
-     * @param nombre  valor del campo {@code nombre} a buscar
+     * @param nombre  valor del campo nombre a buscar
      * @return el ID encontrado
      * @throws SQLException si no se encuentra el nombre en la tabla o hay un error de BD
      */
@@ -1738,14 +1704,14 @@ public class AdminFrame extends JFrame {
 
 
     /**
-     * Resuelve el {@code id_ubicacion} a partir del label "armario - balda"
+     * Resuelve el id de la tabla ubicacion a partir del label "armario - balda"
      * que muestra el combo de ubicaciones.
      *
-     * <p>Separa el string por " - " para obtener los dos códigos y luego
-     * busca la fila correspondiente en la tabla {@code ubicacion}.</p>
+     * Separa el string por " - " para obtener los dos códigos y luego
+     * busca la fila correspondiente en la tabla ubicacion
      *
      * @param label texto con formato "codigo_armario - codigo_balda"
-     * @return el {@code id_ubicacion} correspondiente
+     * @return el id de la ubicacion correspondiente
      * @throws SQLException si no se encuentra la ubicación o hay un error de BD
      */
     private int obtenerIdUbicacion(String label) throws SQLException {
@@ -1768,12 +1734,10 @@ public class AdminFrame extends JFrame {
     /**
      * Selecciona en un combo el ítem que coincide exactamente con el valor dado.
      *
-     * <p>Se usa al cargar los datos de un elemento en el formulario de modificación
-     * para preseleccionar los valores actuales en los combos de categoría,
-     * estado y ubicación.</p>
+     * Se usa al cargar los datos de un elemento en el formulario
      *
      * @param cb    el combo en el que buscar
-     * @param valor el texto del ítem a seleccionar; no hace nada si es {@code null}
+     * @param valor el texto del ítem a seleccionar; no hace nada si es nulo
      */
     private void seleccionarEnCombo(JComboBox<String> cb, String valor) {
         if (valor == null) return;
