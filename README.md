@@ -107,9 +107,9 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
 ## 💻 Sobre el Despliegue
 
 ### Entregas del despliegue
-
 - [Plantilla de la guía de despliegue](/documentacion/entregas/si/guia-despliegue-plantilla/DAW1-RETO-EQUIPO4-GuiaDespliegue.pdf)
 - [Entrega del diagrama de red](/Documentacion/SI/diagrama_red.png)
+- [Guia de despliegue](/Documentacion/SI/guia-despliegue))
 
 ## 🔍 Otras entregas
 
