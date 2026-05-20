@@ -98,7 +98,7 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
 
 - [Diagrama de clases](/Documentacion/ED/entrega-diagrama-clases)
 - [Diagrama de casos de uso](/Documentacion/ED/Entrega-Diagrama-CasosdeUso)
-- [Codigo de app java](/Documentacion/Proyecto_Java)
+- [Codigo de app java](/Documentacion/Proyecto_Java/RETA_2026_TALLER_INFORMATICA)
 
 ## 💻 Sobre el Despliegue
 
