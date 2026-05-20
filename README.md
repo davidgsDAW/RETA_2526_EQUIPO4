@@ -51,11 +51,11 @@ El sistema se compone de:
 
 | 👤 Nombre | 🎯 Rol principal |
 |-----------|-----------------|
-| Mario Zamanillo Tera | 🧭 Coordinador |
-| Juan Camilo Vallejo Reyes | 🗄️ Desarrollador de BD |
-| David Gómez Santiago | ☕ Desarrollador de la Aplicación |
-| Alejandro Fraile Muñoz | 🌐 Desarrollador Web e Infraestructura |
-| Ángel González Cortavitarte | 💻 Desarrollador Web e Infraestructura |
+| Alejandro Fraile Muñoz | 🧭 Coordinador |
+| Juan Camilo Vallejo Reyes | 🗄️ Portavoz |
+| David Gómez Santiago | ☕ Secretario |
+| Angel Gonzalez Cortavitarte | 🌐 Desarrollador Web |
+| Mario zamanillo | ------- |
 
 ---
 
@@ -118,9 +118,9 @@ El sistema se compone de:
 | **GitHub** | Repositorio colaborativo y control de versiones |
 | **GitHub Desktop** | Cliente gráfico para gestión del repositorio |
 | **GitHub Projects** | Tablero Kanban para seguimiento de tareas |
-| **Draw.io** | Creación de diagramas E/R, clases, casos de uso y red |
-| **Microsoft Teams** | Comunicación del equipo y entrega de tareas |
-| **Microsoft Word** | Elaboración de Guía de despliegue y Manual de usuario |
+| **Draw.io**//**Diagrams.io** | Creación de diagramas E/R, clases, casos de uso y red |
+| **Microsoft Teams** | Comunicación del equipo y entrega de tareas(ovas e Ipe I) |
+| **Microsoft Word** | Elaboración de documentación |
 
 ---
 
