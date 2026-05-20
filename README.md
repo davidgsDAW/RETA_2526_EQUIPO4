@@ -132,6 +132,8 @@ La base de datos **`Taller_Informatica`** almacena toda la información del inve
 - 🔗 [Modelo Relacional](/Documentacion/BD/Modelo_Relacional.png)
 - 📜 [Script SQL de creación](/Documentacion/BD/Script_Final.sql)
 
+- ![Diagrama Entidad/Relación](/Documentacion/BD/Entidad_Relacion_Reto.png)
+
 ---
 
 ## ☕ Aplicación Java
