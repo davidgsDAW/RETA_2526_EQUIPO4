@@ -102,7 +102,8 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
 
 ### Entregas del programa
 
-- [Diagrama de clases](/Documentacion/ED/entrega-diagrama-clases/diagrama-clases.drawio)
+- [Diagrama de clases](/Documentacion/ED/entrega-diagrama-clases)
+- [Diagrama de casos de uso](/Documentacion/ED/Entrega-Diagrama-CasosdeUso)
 
 ## 💻 Sobre el Despliegue
 
