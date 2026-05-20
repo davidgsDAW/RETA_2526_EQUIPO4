@@ -174,7 +174,7 @@ La infraestructura sigue una **arquitectura de dos capas** desplegada sobre máq
 - 🔒 Conexiones remotas cifradas mediante SSH y SFTP.
 
 ### 📄 Documentación
-- 🌐 [Diagrama de arquitectura de red](/Documentacion/SI/diagrama_red.png)
+- 🌐 [Diagrama de arquitectura de red](/Documentacion/SI/diagrama_red/diagrama_red.png)
 - 📘 [Guía de despliegue completa](/Documentacion/SI/guia_despliegue/GuiaDespliegue.pdf)
 - 📕 [Manual de usuario](/Documentacion/SI/manual_usuario/Manuel_de_usuario.pdf)
 - 📜 [Licencia del proyecto (Apache 2.0)](/LICENSE)
