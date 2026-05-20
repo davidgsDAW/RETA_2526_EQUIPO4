@@ -6,7 +6,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import org.mindrot.jbcrypt.BCrypt; // Importación de la librería BCrypt
+import org.mindrot.jbcrypt.BCrypt; 
 
 /**
  * Pantalla de inicio de sesión de la aplicación.
@@ -344,7 +344,6 @@ public class LoginFrame extends JFrame {
 
         new Thread(() -> {
             try {
-                // Sincronizado exactamente con tu BD real: tabla 'usuario' (singular)
                 String sql =
                     "SELECT u.id_usuario, u.nombre, u.contrasena, r.nombre AS rol " +
                     "FROM usuario u " +
