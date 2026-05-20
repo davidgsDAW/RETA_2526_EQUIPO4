@@ -131,8 +131,11 @@ La base de datos **`Taller_Informatica`** almacena toda la información del inve
 - 📊 [Diagrama Entidad/Relación](/Documentacion/BD/Entidad_Relacion_Reto.png)
 
 El sistema gestiona materiales (con estados como Disponible o En Reparación) ubicados en armarios, baldas o cajones. Un administrador o profesor (con distintos roles) puede acceder a ellos. Los préstamos y movimientos quedan registrados en un historial para su control.
-- ![Diagrama Entidad/Relación](/Documentacion/BD/Entidad_Relacion_Reto.png)
+![Diagrama Entidad/Relación](/Documentacion/BD/Entidad_Relacion_Reto.png)
 - 🔗 [Modelo Relacional](/Documentacion/BD/Modelo_Relacional.png)
+
+El sistema registra materiales con categoría, estado y ubicación. Los usuarios (con roles) realizan préstamos y cada operación queda en un historial de movimientos
+  ![Modelo relacional](/Documentacion/BD/Modelo_Relacional.png)
 - 📜 [Script SQL de creación](/Documentacion/BD/Script_Final.sql)
 
 
