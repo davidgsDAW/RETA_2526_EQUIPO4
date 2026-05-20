@@ -1,0 +1,102 @@
+/* |-- Hoja de estilos de la Web -------------------------------| */
+/* |------------------------------------------------------------| */
+/* Estilado base */
+.body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    text-align: center;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+
+/* Estilado de la cabecera */
+.cabecera {
+    background-color: #3E7D59;
+    width: 100%;
+    padding: 3vh;
+    color: #ddd;
+}
+
+.cabecera h1 {
+    margin: 0;
+}
+
+.busqueda {
+    margin-top: 3vh;
+}
+
+/* Estilado del Main */
+.contenido {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 3vh;
+    margin-bottom: 3vh;
+    margin-left: 10vw;
+    margin-right: 10vw;
+    background-color: white;
+    border-radius: 15px;
+    min-width: 340px;
+    max-width: 500px;
+    height: 730px;
+}
+
+.contexto {
+    min-width: 320px;
+    max-width: 450px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+/* Estilado del Grid */
+.container {
+    background-color: #f4f4f9;
+    min-width: 320px;
+    height: 60vh;
+    margin-left: 20px;
+    margin-right: 20px;
+    display: grid;
+    position: relative;
+    overflow: hidden;
+}
+
+.container-canvas {
+    border: 1px solid black;
+    position: absolute;
+    pointer-events: none; /* Los clicks/hovers no afectan */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Para que el Canva se quede a altura mínima, así los bloques del grid van por encima */
+    display: block; /* Para que el Canva no se salga del grid */
+    box-sizing: border-box;
+}
+
+/* Estilado del Footer */
+.foot {
+    display: flex;
+    justify-content: space-evenly;
+    flex-flow: wrap-reverse;
+    background-color: #3E7D59;
+    width: 100vw;
+    text-align: center;
+    padding: 3vh;
+    color: #ddd;
+}
+
+.foot img {
+    margin: 1vw;
+    border-radius: 15px;
+}
+
+.foot nav {
+    margin: 1vw;
+}
+
+a:hover { /* Al pasar el puntero por los enlaces se resaltan en rojo */
+    color: #FC1100;
+}

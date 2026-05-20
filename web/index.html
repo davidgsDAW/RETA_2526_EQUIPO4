@@ -13,54 +13,53 @@
         <meta property="og:title" content="Taller de Informática | IES Miguel Herrero Pereda"> <!-- Para el hipotético caso de que se publicara esta web en la página del centro -->
         <meta property="og:description" content="Página web para la búsqueda de material del centro"> <!-- Lo mismo que el título, pero con su descripción -->
         <meta name="robots" content="index, follow">
-        <link rel="stylesheet" href="./style/index-styles.css">
+        <link rel="stylesheet" href="./style/styles.css">
+        <script src="./script/index-scripts.js" defer></script>
     </head>
 
-    <body>
-        <div id="body">
-            <header> <!-- Cabecera -->
-                <h1>Taller de Informática <br class="salto">IES Miguel Herrero Pereda</h1>
-                <nav>
-                    <form>
-                        <div id="busqueda">
-                            <label for="site-search"></label>
-                            <input type="search" id="site-search" name="q" placeholder="Buscar componentes..."/>
-                            <button>Buscar</button>
-                        </div>
-                    </form>
-                    </nav>
-            </header>
+    <body class="body">
+        <header class="cabecera"> <!-- Cabecera -->
+            <h1>Taller de Informática <br class="salto">IES Miguel Herrero Pereda</h1>
+            <nav>
+                <form class="busqueda">
+                    <label for="site-search"></label>
+                    <input type="search" id="site-search" name="q" placeholder="Buscar componentes..."/>
+                    <button>Buscar</button>
+                </form>
+            </nav>
+        </header>
 
-            <main> <!-- Contenido principal -->
-                <section>
-                    <div class="main"></div>
-                        <article>
-                            <div class="context">
-                                <h2>Búsqueda Interactiva de Componentes</h2>
-                                <p>
-                                    En este panel interactivo podrás ver las distintas zonas de almacenamiento del taller. Haz click en cualquier zona para ver su contenido.
-                                </p>
-                            </div>
-                        </article>
-
-                        <article>
-                            <div class="container">
-                                <p>
-                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Debitis nobis inventore ab quisquam possimus laboriosam nihil iure nulla qui ea? Dolore exercitationem aut rem tempore expedita quae enim nesciunt veniam.
-                                </p>
-                            </div>
-                        </article>
+        <main> <!-- Contenido principal -->
+            <section class="contenido">
+                <article>
+                    <div class="contexto">
+                        <h2>Búsqueda Interactiva de Componentes</h2>
+                        <p>
+                            En este panel interactivo podrás ver las distintas zonas de almacenamiento del taller. Haz click en cualquier zona para ver su contenido.
+                        </p>
                     </div>
-                </section>
-            </main>
+                </article>
 
-            <footer> <!-- Pié de página con información extra -->
-                <div class="foot">
-                    <p>
-                    
-                        /p>
-                </div>
-            </footer>
-        </div>
+                <article>
+                    <div class="container">
+                        <canvas class="container-canvas" id="canvas">
+                            
+                        </canvas>
+                        <div class="item"></div>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer class="foot"> <!-- Pié de página con información extra -->
+            <img src="./src/logo-miguel-herrero.jpg" height="70"
+            width="70">
+            <h2>RETA 2025/26 IES Miguel Herrero Pereda</h2>
+            <nav>
+                <a href="https://www.educantabria.es/web/ies-miguel-herrero-pereda">Web del centro</a><br>
+                <a href="">Repositorio del proyecto</a><br>
+                <a href="./index.html">Volver al Inicio</a>
+            </nav>
+        </footer>
     </body>
 </html>
