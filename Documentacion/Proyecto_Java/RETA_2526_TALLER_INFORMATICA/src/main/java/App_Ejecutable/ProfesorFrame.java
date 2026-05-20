@@ -12,10 +12,8 @@ import java.sql.*;
 /**
  * Ventana principal para los usuarios con perfil de Profesor.
  * Tiene permisos de solo lectura sobre el inventario, puede buscar y filtrar,
- * localizar materiales en el mapa web del taller y generar informes.
  * 
- * Los datos se cargan desde la base de datos MySQL (tabla: material).
- * La localización visual se hace abriendo un navegador con la URL del MV2.
+ * Los datos se cargan desde la base de datos MySQL.
  * 
  * @author David Gómez
  * @version 2.0

@@ -6,6 +6,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import org.mindrot.jbcrypt.BCrypt; // Importación de la librería BCrypt
 
 /**
  * Pantalla de inicio de sesión de la aplicación.
@@ -57,8 +58,7 @@ public class LoginFrame extends JFrame {
     /**
      * Crea la parte superior de la ventana con el título, subtítulo y un icono.
      * Le pongo un degradado de fondo para que quede más bonito.
-     * 
-     * @return Panel de cabecera 
+     * * @return Panel de cabecera 
      */
     private JPanel crearPanelCabecera() {
         JPanel panel = new JPanel() {
@@ -126,8 +126,7 @@ public class LoginFrame extends JFrame {
     /**
      * Crea el formulario central con los campos de usuario, contraseña
      * y el botón de inicio de sesión.
-     * 
-     * @return Panel con el formulario completo
+     * * @return Panel con el formulario completo
      */
     private JPanel crearPanelFormulario() {
         JPanel outer = new JPanel(new GridBagLayout());
@@ -166,7 +165,7 @@ public class LoginFrame extends JFrame {
         txtContrasena = crearCampoPassword("••••••••");
         card.add(txtContrasena, gbc);
 
-        // Checkbox para mostrar/ocultar la contraseña (por si el usuario quiere ver lo que escribe)
+        // Checkbox para mostrar/ocultar la contraseña
         gbc.gridy++;
         gbc.insets = new Insets(0, 0, 8, 0);
         chkMostrar = new JCheckBox("Mostrar contraseña");
@@ -194,8 +193,7 @@ public class LoginFrame extends JFrame {
 
         outer.add(card, new GridBagConstraints());
 
-        // Atajos de teclado: Enter en el campo de contraseña hace login
-        // Enter en el campo de usuario pasa el foco a la contraseña
+        // Atajos de teclado
         txtContrasena.addKeyListener(new KeyAdapter() {
             @Override public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) autenticar();
@@ -212,8 +210,7 @@ public class LoginFrame extends JFrame {
 
     /**
      * Crea el pie de página con información de la base de datos.
-     * 
-     * @return Panel del pie
+     * * @return Panel del pie
      */
     private JPanel crearPanelPie() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -235,13 +232,6 @@ public class LoginFrame extends JFrame {
         return lbl;
     }
 
-    /**
-     * Crea un campo de texto con placeholder y bordes redondeados.
-     * El placeholder desaparece cuando el usuario empieza a escribir.
-     * 
-     * @param placeholder Texto que se muestra cuando el campo está vacío
-     * @return Campo de texto listo para usar
-     */
     private JTextField crearCampoTexto(String placeholder) {
         JTextField campo = new JTextField() {
             @Override protected void paintComponent(Graphics g) {
@@ -264,7 +254,6 @@ public class LoginFrame extends JFrame {
         campo.setText(placeholder);
         campo.setForeground(COLOR_SUBTEXTO);
         
-        // Focus listener para manejar el placeholder
         campo.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) {
                 if (campo.getText().equals(placeholder)) {
@@ -282,12 +271,6 @@ public class LoginFrame extends JFrame {
         return campo;
     }
 
-    /**
-     * Crea un campo de contraseña con el mismo estilo que los campos de texto.
-     * 
-     * @param placeholder Texto de placeholder
-     * @return Campo de contraseña listo
-     */
     private JPasswordField crearCampoPassword(String placeholder) {
         JPasswordField campo = new JPasswordField() {
             @Override protected void paintComponent(Graphics g) {
@@ -311,11 +294,6 @@ public class LoginFrame extends JFrame {
         return campo;
     }
 
-    /**
-     * Crea el botón de login con efecto hover (al pasar el raton por encima cambia el estilo) y estilo personalizado.
-     * 
-     * @return Botón de inicio de sesión
-     */
     private JButton crearBotonLogin() {
         JButton btn = new JButton("Iniciar sesión") {
             private boolean hover = false;
@@ -347,20 +325,15 @@ public class LoginFrame extends JFrame {
 
     /**
      * Comprueba las credenciales del usuario contra la base de datos.
-     * Hace una consulta para saber qué perfil tiene.
-     * 
-     * Si el usuario es ADMINISTRADOR abre AdminFrame
-     * Si es PROFESOR  abre ProfesorFrame 
-     * 
+     * Recupera el hash de la contraseña de la tabla 'usuario' y lo valida con BCrypt.
      */
     private void autenticar() {
-        String usuario    = txtUsuario.getText().trim();
+        String usuario = txtUsuario.getText().trim();
         String contrasena = new String(txtContrasena.getPassword());
 
         lblMensaje.setForeground(COLOR_ERROR);
 
-        // Validación básica de campos vacíos
-        if (usuario.isEmpty() || contrasena.isEmpty()) {
+        if (usuario.isEmpty() || contrasena.isEmpty() || usuario.equals("Introduce tu nombre de usuario")) {
             lblMensaje.setText("Por favor, introduce usuario y contraseña.");
             return;
         }
@@ -369,76 +342,93 @@ public class LoginFrame extends JFrame {
         lblMensaje.setForeground(COLOR_SUBTEXTO);
         lblMensaje.setText("Verificando credenciales...");
 
-        // Hago la consulta en un hilo aparte para no bloquear la interfaz
         new Thread(() -> {
-            String sql =
-                "SELECT u.id_usuario, u.nombre, r.nombre AS rol " +
-                "FROM usuario u " +
-                "JOIN rol_usuario r ON r.id = u.id_rol " +
-                "WHERE u.nombre = ? AND u.contrasena = ?";
+            try {
+                // Sincronizado exactamente con tu BD real: tabla 'usuario' (singular)
+                String sql =
+                    "SELECT u.id_usuario, u.nombre, u.contrasena, r.nombre AS rol " +
+                    "FROM usuario u " +
+                    "JOIN rol_usuario r ON r.id = u.id_rol " +
+                    "WHERE u.nombre = ?";
 
-            try (Connection con = ConexionBD.getInstance().getConn();
-                 PreparedStatement ps = con.prepareStatement(sql)) {
+                try (Connection con = ConexionBD.getInstance().getConn();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
 
-                ps.setString(1, usuario);
-                ps.setString(2, contrasena); 
+                    ps.setString(1, usuario);
+                    
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            String hashBD = rs.getString("contrasena"); // El hash seguro de la BD
 
-                ResultSet rs = ps.executeQuery();
-
-                if (rs.next()) {
-                    String nombre = rs.getString("nombre");
-                    String rol    = rs.getString("rol");
-                    int    idUsr  = rs.getInt("id_usuario");
-
-                    // Si las credenciales son correctas, abro la ventana correspondiente
-                    SwingUtilities.invokeLater(() -> {
-                        lblMensaje.setForeground(new Color(74, 222, 128));
-                        lblMensaje.setText("✓ Acceso correcto — " + rol);
-                        // Pequeño retraso para que se vea el mensaje de éxito
-                        Timer t = new Timer(600, e -> {
-                            dispose(); // Cierro la ventana de login
-                            if ("ADMINISTRADOR".equals(rol)) {
-                                new AdminFrame(nombre, idUsr).setVisible(true);
-                            } else {
-                                 new ProfesorFrame(usuario).setVisible(true);
-                                JOptionPane.showMessageDialog(null, 
-                                    "Perfil PROFESOR - Pendiente de implementación", 
-                                    "Info", JOptionPane.INFORMATION_MESSAGE);
+                            if (hashBD == null || hashBD.isEmpty()) {
+                                mostrarErrorVisual("✗ El usuario no tiene credenciales válidas.");
+                                return;
                             }
-                        });
-                        t.setRepeats(false);
-                        t.start();
-                    });
-                } else {
-                    // Credenciales incorrectas
-                    SwingUtilities.invokeLater(() -> {
-                        lblMensaje.setForeground(COLOR_ERROR);
-                        lblMensaje.setText("✗ Usuario o contraseña incorrectos.");
-                        btnLogin.setEnabled(true);
-                    });
-                }
 
+                            // Verificamos la contraseña escrita con el hash usando BCrypt
+                            if (BCrypt.checkpw(contrasena, hashBD)) {
+                                String nombre = rs.getString("nombre");
+                                String rol    = rs.getString("rol");
+                                int    idUsr  = rs.getInt("id_usuario");
+
+                                SwingUtilities.invokeLater(() -> {
+                                    lblMensaje.setForeground(new Color(74, 222, 128));
+                                    lblMensaje.setText("✓ Acceso correcto — " + rol);
+                                    
+                                    Timer t = new Timer(600, e -> {
+                                        dispose();
+                                        if ("ADMINISTRADOR".equals(rol)) {
+                                            new AdminFrame(nombre, idUsr).setVisible(true);
+                                        } else {
+                                            new ProfesorFrame(usuario).setVisible(true);
+                                            JOptionPane.showMessageDialog(null, 
+                                                "Perfil PROFESOR - Pendiente de implementación", 
+                                                "Info", JOptionPane.INFORMATION_MESSAGE);
+                                        }
+                                    });
+                                    t.setRepeats(false);
+                                    t.start();
+                                });
+                            } else {
+                                mostrarErrorVisual("✗ Usuario o contraseña incorrectos.");
+                            }
+                        } else {
+                            mostrarErrorVisual("✗ Usuario o contraseña incorrectos.");
+                        }
+                    }
+                }
             } catch (SQLException ex) {
-                // Error de conexión a la base de datos
-                SwingUtilities.invokeLater(() -> {
-                    lblMensaje.setForeground(COLOR_ERROR);
-                    lblMensaje.setText("✗ Error de conexión a la base de datos.");
-                    btnLogin.setEnabled(true);
-                    JOptionPane.showMessageDialog(LoginFrame.this,
-                        "No se pudo conectar a la base de datos:\n" + ex.getMessage(),
-                        "Error de BD", JOptionPane.ERROR_MESSAGE);
-                });
+                mostrarErrorConexion(ex.getMessage());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                mostrarErrorVisual("✗ Error inesperado en la aplicación.");
             }
         }).start();
     }
 
+    private void mostrarErrorVisual(String mensaje) {
+        SwingUtilities.invokeLater(() -> {
+            lblMensaje.setForeground(COLOR_ERROR);
+            lblMensaje.setText(mensaje);
+            btnLogin.setEnabled(true);
+        });
+    }
+
+    private void mostrarErrorConexion(String errorMsg) {
+        SwingUtilities.invokeLater(() -> {
+            lblMensaje.setForeground(COLOR_ERROR);
+            lblMensaje.setText("✗ Error de conexión a la base de datos.");
+            btnLogin.setEnabled(true);
+            JOptionPane.showMessageDialog(LoginFrame.this,
+                "No se pudo conectar a la base de datos:\n" + errorMsg,
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        });
+    }
+
     /**
      * Punto de entrada de la aplicación.
-     * 
-     * @param args 
      */
     public static void main(String[] args) {
-        // Intento usar el tema visual del sistema operativo
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
         catch (Exception ignored) {}
         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
