@@ -143,7 +143,7 @@ Aplicación de escritorio con interfaz Swing para la gestión del inventario. Di
 
 - 📊 [Diagrama de clases](/Documentacion/ED/entrega-diagrama-clases)
 - 👤 [Diagrama de casos de uso](/Documentacion/ED/Entrega-Diagrama-CasosdeUso)
-- 💻 [Código fuente de la aplicación](/Documentacion/Proyecto_Java/RETA_2026_TALLER_INFORMATICA)
+- 💻 [Código fuente de la aplicación](/Documentacion/Proyecto_Java/RETA_2526_TALLER_INFORMATICA)
 
 ---
 
