@@ -10,14 +10,10 @@
   - [Mejoras propuestas](#mejoras-propuestas)
   - [Bibliografía y webgrafía](#bibliografía-y-webgrafía)
 - [📂 Sobre la Base de Datos](#-sobre-la-base-de-datos)
-  - [Entregas de la base de datos](#entregas-de-la-base-de-datos)
 - [📱 Sobre la Página Web](#-sobre-la-página-web)
 - [☕ Sobre el Programa](#-sobre-el-programa)
-  - [Entregas del programa](#entregas-del-programa)
 - [💻 Sobre el Despliegue](#-sobre-el-despliegue)
-  - [Entregas del despliegue](#entregas-del-despliegue)
 - [🔍 Otras entregas](#-otras-entregas)
-  - [Entregas IPE1](#entragas-ipe1)
 
 ## 📝 Descripción del Proyecto
 
@@ -90,7 +86,6 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
 
 ## 📂 Sobre la Base de Datos
 
-### Entregas de la base de datos
 
 - [Entrega del diagrama Entidad Relación de la base de datos](/Documentacion/BD/Entidad_Relacion_Reto.png)
 - [Entrega del script de la base de datos](/Documentacion/BD/Script_Final.sql)
@@ -100,14 +95,12 @@ A continuación se muestran las principales tecnologías usadas para el desarrol
 
 ## ☕ Sobre el Programa
 
-### Entregas del programa
 
 - [Diagrama de clases](/Documentacion/ED/entrega-diagrama-clases)
 - [Diagrama de casos de uso](/Documentacion/ED/Entrega-Diagrama-CasosdeUso)
 
 ## 💻 Sobre el Despliegue
 
-### Entregas del despliegue
 - [Plantilla de la guía de despliegue](/documentacion/entregas/si/guia-despliegue-plantilla/DAW1-RETO-EQUIPO4-GuiaDespliegue.pdf)
 - [Entrega del diagrama de red](/Documentacion/SI/diagrama_red.png)
 - [Guia de despliegue](/Documentacion/SI/guia_despliegue/GuiaDespliegue.pdf)
