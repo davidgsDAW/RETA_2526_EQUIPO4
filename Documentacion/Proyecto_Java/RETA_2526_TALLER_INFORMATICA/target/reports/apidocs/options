@@ -1,0 +1,25 @@
+--no-fonts
+-classpath
+'D:/Usuarios/daw116/.m2/repository/com/mysql/mysql-connector-j/9.6.0/mysql-connector-j-9.6.0.jar;D:/Usuarios/daw116/.m2/repository/com/google/protobuf/protobuf-java/4.31.1/protobuf-java-4.31.1.jar;D:/Usuarios/daw116/.m2/repository/org/mindrot/jbcrypt/0.4/jbcrypt-0.4.jar'
+-encoding
+'UTF-8'
+-protected
+--release
+24
+-sourcepath
+'D:/Usuarios/daw116/Documents/GitHub/RETA_2526_EQUIPO4/Documentacion/Proyecto_Java/RETA_2526_TALLER_INFORMATICA/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2026. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'D:/Usuarios/daw116/Documents/GitHub/RETA_2526_EQUIPO4/Documentacion/Proyecto_Java/RETA_2526_TALLER_INFORMATICA/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'RETA_2526_TALLER_INFORMATICA 1.0-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'RETA_2526_TALLER_INFORMATICA 1.0-SNAPSHOT API'

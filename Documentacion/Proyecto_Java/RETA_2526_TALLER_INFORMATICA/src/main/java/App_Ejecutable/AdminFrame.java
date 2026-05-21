@@ -9,7 +9,7 @@ import java.awt.event.*;
 import java.sql.*;
 import java.util.Vector;
 
-/**
+/*
  * Ventana principal del perfil Administrador.
  *
  * Esta clase representa el panel de control completo para el rol de administrador
@@ -47,23 +47,23 @@ public class AdminFrame extends JFrame {
     };
 
 
-    /** Contenedor central que alterna */
+    /*Contenedor central que alterna */
     private JPanel           contenidoCentral;
-    /** Gestor de vistas del panel central. */
+    /* Gestor de vistas del panel central. */
     private CardLayout       cardLayout;
-    /** Tabla principal del inventario. */
+    /* Tabla principal del inventario. */
     private JTable           tablaInventario;
-    /** Modelo de datos */
+    /* Modelo de datos */
     private DefaultTableModel modeloTabla;
-    /** Etiqueta de la barra inferior que muestra el estado de la conexión. */
+    /* Etiqueta de la barra inferior que muestra el estado de la conexión. */
     private JLabel           lblEstado;
-    /** Nombre de usuario con el que se inició sesión. */
+    /* Nombre de usuario con el que se inició sesión. */
     private final String     usuarioActual;
-    /** ID de base de datos del usuario actual ,se guarda por si hace falta en consultas futuras. */
+    /*ID de base de datos del usuario actual ,se guarda por si hace falta en consultas futuras. */
     private final int        idUsuarioActual; 
 
 
-    /**
+    /*
      * Construye el frame del administrador y lo deja listo para mostrarse.
      *
      * Configura el tamaño, posición y estructura general de la ventana
