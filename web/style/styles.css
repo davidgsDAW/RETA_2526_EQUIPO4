@@ -61,6 +61,38 @@
     display: grid;
     position: relative;
     overflow: hidden;
+    gap: 10px;
+    background: #ddd;
+    padding: 10px;
+    grid-template-areas:
+    ". . . . . . . . . . . . . . . . . . . . .  ."
+    ". . . . . . . . . . . . . . . . . . . . .  ."
+    ". armario . . . . . . . . . . . . . . . . . . .  ." 
+    ". armario . . . . . . . . . . . . . . . . . . . ."
+    ". . . . . . . . . . . . . . . . . . . . .  ."
+    ". . . . . . . . . . . . . . . . . . . . .  ."
+    ". . . . . . . . . . . . . . . . . . . . .  ."
+    ". . . . . . . . . . . . . . . . . . . . .  .";
+}
+
+.zone {
+    z-index: 100;
+    background: firebrick;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    font-weight: bold;
+}
+
+.zone:hover {
+    background: floralwhite;
+    transform: scale(1.02);
+    outline-style:auto;
+    outline-color: black;
+    color: black;
 }
 
 .container-canvas {
@@ -73,6 +105,19 @@
     height: 100%;
     z-index: 1; /* Para que el Canva se quede a altura mínima, así los bloques del grid van por encima */
     display: block; /* Para que el Canva no se salga del grid */
+    box-sizing: border-box;
+}
+
+.container-canvas-armario {
+    border: 1px solid black;
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: block;
     box-sizing: border-box;
 }
 
